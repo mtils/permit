@@ -89,6 +89,7 @@ The extended version of ContainerInterface is the DualContainerInterface, which 
 ```php
 
 interface CurrentUser\DualContainerInterface extends ContainerInterface{
+
     const BOTH = 0;
 
     const ACTUAL = 1;
