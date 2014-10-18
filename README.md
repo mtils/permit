@@ -26,7 +26,6 @@ The Facade API (which is mostly used in views):
 ```php
 
 //Return the current user (always returns a user object)
-
 Auth::user();
 
 // Set the current user
@@ -119,5 +118,6 @@ interface CurrentUser\DualContainerInterface extends ContainerInterface{
 
     // Resets this container (logout)
     public function reset($type=self::BOTH);
-
+    
+}
 ```
