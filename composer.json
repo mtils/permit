@@ -16,7 +16,7 @@
   },
   "autoload": {
     "psr-0": {
-      "Collection": "src/"
+      "Permit": "src/"
     }
   },
   "minimum-stability": "dev"
