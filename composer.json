@@ -1,0 +1,23 @@
+{
+  "name": "ems/permit",
+  "type": "library",
+  "description": "Permission based authentication system",
+  "keywords": ["auth", "permissions"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Michael Tils",
+      "email": "mtils@web-utils.de",
+      "homepage": "http://web-utils.de"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0"
+  },
+  "autoload": {
+    "psr-0": {
+      "Collection": "src/"
+    }
+  },
+  "minimum-stability": "dev"
+}
