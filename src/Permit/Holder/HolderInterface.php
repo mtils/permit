@@ -32,7 +32,7 @@ interface HolderInterface{
      * @param string $code
      * @return bool
      **/
-    public function getPermitAccess($code);
+    public function getPermissionAccess($code);
 
     /**
      * @brief Sets the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
@@ -42,7 +42,7 @@ interface HolderInterface{
      * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
      * @return void
      **/
-    public function setPermitAccess($code, $access);
+    public function setPermissionAccess($code, $access);
 
     /**
      * @param Returns all permission codes

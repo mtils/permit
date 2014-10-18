@@ -22,7 +22,7 @@ class Checker implements CheckerInterface{
             $resourceOrCode = $resourceOrCode->requiredPermit($context);
         }
 
-        return ($holder->getPermitAccess($resourceOrCode) === HolderInterface::GRANTED);
+        return ($holder->getPermissionAccess($resourceOrCode) === HolderInterface::GRANTED);
 
     }
 

@@ -48,9 +48,9 @@ class LoginValidator implements LoginValidatorInterface{
         // Check if stackedUser has any permission actualUser has not
         foreach($stackedUser->permissionCodes() as $permCode){
 
-            if($stackedUser->getPermitAccess($permCode) === HolderInterface::GRANTED){
+            if($stackedUser->getPermissionAccess($permCode) === HolderInterface::GRANTED){
 
-                if($actualUser->getPermitAccess($permCode) !== HolderInterface::GRANTED){
+                if($actualUser->getPermissionAccess($permCode) !== HolderInterface::GRANTED){
 
                     throw new LessPermissionsThanStackedException('You cannot login as a user who has more permissions');
 

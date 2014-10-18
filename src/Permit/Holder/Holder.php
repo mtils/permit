@@ -28,7 +28,7 @@ class Holder implements HolderInterface{
      * @param string $code
      * @return bool
      **/
-    public function getPermitAccess($code){
+    public function getPermissionAccess($code){
         if(isset($this->permissionCodes[$code])){
             return $this->permissionCodes[$code];
         }
@@ -43,7 +43,7 @@ class Holder implements HolderInterface{
      * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
      * @return void
      **/
-    public function setPermitAccess($code, $access){
+    public function setPermissionAccess($code, $access){
         $this->permissionCodes[$code] = $access;
     }
 

@@ -19,7 +19,7 @@ trait HolderTrait{
      * @param string $code
      * @return bool
      **/
-    public function getPermitAccess($code){
+    public function getPermissionAccess($code){
 
         $codeParts = explode('.',$code);
         $prefix = '';
@@ -53,7 +53,7 @@ trait HolderTrait{
      * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
      * @return void
      **/
-    public function setPermitAccess($code, $access){
+    public function setPermissionAccess($code, $access){
 
         $permissions = $this->permissions;
         $permissions[$code] = $access;
