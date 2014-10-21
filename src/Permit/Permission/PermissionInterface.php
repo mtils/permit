@@ -6,10 +6,6 @@ interface PermissionInterface{
 
     public function setCode($code);
 
-    public function getName();
-
-    public function setName($name);
-
     public function getTitle();
 
     public function setTitle($title);
