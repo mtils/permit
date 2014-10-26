@@ -2,16 +2,23 @@
 
 use Illuminate\Support\ServiceProvider;
 use Permit\Support\Sentry\Authenticator;
-use Permit\Checker\Checker;
+use Permit\Registration\RegistrarInterface;
+use Permit\Permission\AccessChecker;
 use Permit\CurrentUser\DualContainer;
 use Permit\CurrentUser\FallbackContainer;
 use Permit\CurrentUser\LoginValidator;
-use Permit\Support\Sentry\CurrentUserContainer;
-use Permit\Support\Laravel\SessionCurrentUserContainer;
-use Permit\Support\Sentry\HolderProvider;
+use Permit\Support\Sentry\CurrentUser\Container;
+use Permit\Support\Laravel\CurrentUser\SessionContainer;
+use Permit\Support\Sentry\User\Provider as UserProvider;
+use Permit\Support\Sentry\Registration\UserRepository;
+use Permit\Support\Sentry\Registration\Activation\Driver;
+use Permit\Access\FakeAssigner;
+use Permit\Registration\Registrar;
 use Permit\AuthService;
 
 class LaravelServiceProvider extends ServiceProvider{
+
+    public $useRegistrar = true;
 
     /**
      * Register the service provider.
@@ -30,14 +37,16 @@ class LaravelServiceProvider extends ServiceProvider{
 
         $this->registerCurrentUserContainer();
 
+        $this->registerRegistrar();
+
         $this->registerAuth();
 
     }
 
     protected function registerPermissionChecker(){
 
-        $this->app->singleton('Permit\Checker\CheckerInterface', function($app){
-            return new Checker();
+        $this->app->singleton('Permit\Access\CheckerInterface', function($app){
+            return new AccessChecker();
         });
 
     }
@@ -45,7 +54,7 @@ class LaravelServiceProvider extends ServiceProvider{
     protected function registerLoginValidator(){
 
         $this->app->singleton('Permit\CurrentUser\LoginValidatorInterface', function($app){
-            return new LoginValidator();
+            return $app->make('Permit\CurrentUser\LoginValidator');
         });
 
     }
@@ -56,7 +65,7 @@ class LaravelServiceProvider extends ServiceProvider{
 
         $this->app->singleton('Permit\CurrentUser\ContainerInterface', function($app) use ($serviceProvider){
 
-            $actualContainer = new CurrentUserContainer($app['sentry']);
+            $actualContainer = new Container($app['sentry']);
 
             $dualContainer = new DualContainer(
                 $actualContainer,
@@ -81,16 +90,64 @@ class LaravelServiceProvider extends ServiceProvider{
 
         });
 
+    }
+
+    protected function registerRegistrar(){
+
+        if($this->useRegistrar){
+
+            $this->registerUserRepository();
+            $this->registerActivationDriver();
+            $this->registerAccessAssigner();
+            $this->registerRegistrarObject();
+        }
+
+    }
+
+    protected function registerUserRepository(){
+
+        $this->app->singleton('Permit\Registration\UserRepositoryInterface', function($app){
+            return new UserRepository($app['sentry.user']);
+
+        });
+
+    }
+
+    protected function registerActivationDriver(){
+
+        $this->app->singleton('Permit\Registration\Activation\DriverInterface', function($app){
+            return new Driver();
+
+        });
+
+    }
+
+    protected function registerAccessAssigner(){
+
+        $this->app->singleton('Permit\Access\AssignerInterface', function($app){
+            return new FakeAssigner();
+
+        });
+
+    }
+
+    protected function registerRegistrarObject(){
+
+        // All interfaces a binded, so just make it
+        $this->app->singleton('Permit\Registration\RegistrarInterface', function($app){
+            return $app->make('Permit\Registration\Registrar');
+
+        });
 
     }
 
     protected function createStackedContainer(){
 
-        $userProvider = new HolderProvider($this->app['sentry.user']);
+        $userProvider = new UserProvider($this->app['sentry.user']);
 
-        $stackedContainer = new SessionCurrentUserContainer($this->app['session.store'],
-                                                            $userProvider,
-                                                            'permissioncode_stacked_user');
+        $stackedContainer = new SessionContainer($this->app['session.store'],
+                                                 $userProvider,
+                                                 'permissioncode_stacked_user');
         return $stackedContainer;
     }
 
@@ -102,7 +159,9 @@ class LaravelServiceProvider extends ServiceProvider{
 
     protected function registerAuth(){
 
-        $this->app->bindShared('auth', function($app)
+        $useRegistrar = $this->useRegistrar;
+
+        $this->app->bindShared('auth', function($app) use ($useRegistrar)
         {
             // Once the authentication service has actually been requested by the developer
             // we will set a variable in the application indicating such. This helps us
@@ -111,10 +170,14 @@ class LaravelServiceProvider extends ServiceProvider{
 
             $service = new AuthService(
                 $app->make('Permit\CurrentUser\ContainerInterface'),
-                $app->make('Permit\Checker\CheckerInterface')
+                $app->make('Permit\Access\CheckerInterface')
             );
 
-            $service->setFallBack($app['sentry']);
+            if($useRegistrar){
+                $service->setRegistrar($app->make('Permit\Registration\RegistrarInterface'));
+            }
+
+            $service->addFallBack($app['sentry']);
 
             return $service;
 
@@ -132,7 +195,7 @@ class LaravelServiceProvider extends ServiceProvider{
         return [
             'auth',
             'Permit\CurrentUser\ContainerInterface',
-            'Permit\Checker\CheckerInterface',
+            'Permit\Access\CheckerInterface',
             'Permit\CurrentUser\LoginValidatorInterface'
         ];
     }

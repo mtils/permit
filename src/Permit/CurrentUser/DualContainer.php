@@ -1,7 +1,7 @@
 <?php namespace Permit\CurrentUser;
 
 use Permit\CurrentUser\LoginValidatorInterface;
-use Permit\Holder\HolderInterface;
+use Permit\User\UserInterface;
 use InvalidArgumentException;
 
 class DualContainer implements DualContainerInterface{
@@ -48,7 +48,7 @@ class DualContainer implements DualContainerInterface{
     /**
      * @brief Retrieve the current user.
      *
-     * @return Permit\Holder\HolderInterface
+     * @return \Permit\User\UserInterface
      **/
     public function user(){
 
@@ -79,11 +79,11 @@ class DualContainer implements DualContainerInterface{
      * @brief Set the current user. If a user should be logged in as a
      *        different user you shoul simply set a user a second time
      *
-     * @param Permit\Holder\HolderInterface $user
+     * @param \Permit\User\UserInterface $user
      * @param bool $persist Persists the user (in session)
-     * @return Permit\Holder\HolderInterface
+     * @return \Permit\User\UserInterface
      **/
-    public function setUser(HolderInterface $user, $persist=true){
+    public function setUser(UserInterface $user, $persist=true){
 
         if($actualUser = $this->actualContainer->user()){
 
@@ -113,7 +113,7 @@ class DualContainer implements DualContainerInterface{
      * @brief Returns the user which was acutally logged in, no matter if he
      *        was logged in as some other user
      *
-     * @return Permit\Holder\HolderInterface
+     * @return Permit\User\UserInterface
      **/
     public function actualUser(){
         return $this->actualContainer->user();
@@ -122,11 +122,11 @@ class DualContainer implements DualContainerInterface{
     /**
      * @brief Sets the actual user
      *
-     * @param Permit\Holder\HolderInterface $user
-     * @param bool $persist Permist the user (in session)
+     * @param Permit\User\UserInterface $user
+     * @param bool $persist Persist the user (in session)
      * @return void
      **/
-    public function setActualUser(HolderInterface $user, $persist=true){
+    public function setActualUser(UserInterface $user, $persist=true){
 
         $this->validator->validateOrFail($user);
 
@@ -138,7 +138,7 @@ class DualContainer implements DualContainerInterface{
      * @brief Return the user currently set by an (admin) to be logged in as.
      *        If the user didnt login as someone different it returns null
      *
-     * @return Permit\Holder\HolderInterface|null
+     * @return \Permit\User\UserInterface|null
      **/
     public function stackedUser(){
         return $this->stackedContainer->user();
@@ -148,11 +148,11 @@ class DualContainer implements DualContainerInterface{
      * @brief Set the stacked user which is the user an admin wants to login
      *        as
      *
-     * @param Permit\Holder\HolderInterface $user
+     * @param Permit\User\UserInterface $user
      * @param bool $persist Permist the user (in session)
      * @return void
      **/
-    public function setStackedUser(HolderInterface $user, $persist=true){
+    public function setStackedUser(UserInterface $user, $persist=true){
 
         if(!$actualUser = $this->actualUser()){
             throw new LoginAsRequiresActualUserException('To login as another user you have do login first');

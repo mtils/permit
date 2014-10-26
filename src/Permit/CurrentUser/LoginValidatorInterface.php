@@ -1,6 +1,6 @@
 <?php namespace Permit\CurrentUser;
 
-use Permit\Holder\HolderInterface;
+use Permit\User\UserInterface;
 use RuntimeException;
 
 class LoginAsRequiresActualUserException extends RuntimeException{};
@@ -16,8 +16,8 @@ interface LoginValidatorInterface{
      * @brief Check a user before login. This method throws an exception if
      *        validation fails
      *
-     * @param Permit\Holder\HolderInterface $actualUser
-     * @param Permit\Holder\HolderInterface $stackedUser (optional)
+     * @param \Permit\User\UserInterface $actualUser
+     * @param \Permit\User\UserInterface $stackedUser (optional)
      * @return void
      *
      * @throws Permit\CurrentUser\LoginAsSuperUserException
@@ -25,6 +25,6 @@ interface LoginValidatorInterface{
      * @throws Permit\CurrentUser\UnsufficientPermissionsException
      * @throws Permit\CurrentUser\LessPermissionsThanStackedException
      **/
-    public function validateOrFail(HolderInterface $actualUser, HolderInterface $stackedUser=NULL);
+    public function validateOrFail(UserInterface $actualUser, UserInterface $stackedUser=NULL);
 
 }

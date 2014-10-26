@@ -1,6 +1,6 @@
 <?php namespace Permit\Permission;
 
-use Permit\Holder\HolderInterface;
+use Permit\Permission\Holder\HolderInterface;
 
 class ManualRepository implements RepositoryInterface{
 
@@ -98,7 +98,7 @@ class ManualRepository implements RepositoryInterface{
     /**
      * @brief Returns a filtered Traversable of permissions
      *
-     * @param Permit\Holder\HolderInterface $holder (optional)
+     * @param Permit\Permission\Holder\HolderInterface $holder (optional)
      * @param Permit\Permission\CategoryInterface $category
      * @return Traversable
      **/
@@ -109,7 +109,7 @@ class ManualRepository implements RepositoryInterface{
     /**
      * @brief Return all permissions of $holder
      *
-     * @param Permit\Holder\HolderInterface $holder (optional)
+     * @param Permit\Permission\Holder\HolderInterface $holder (optional)
      * @return Traversable of categories
      **/
     public function categories(HolderInterface $holder=NULL){

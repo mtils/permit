@@ -1,6 +1,6 @@
 <?php namespace Permit\CurrentUser;
 
-use Permit\Holder\HolderInterface;
+use Permit\User\UserInterface;
 
 interface DualContainerInterface extends ContainerInterface{
 
@@ -15,24 +15,24 @@ interface DualContainerInterface extends ContainerInterface{
      * @brief Returns the user which was acutally logged in, no matter if he
      *        was logged in as some other user
      *
-     * @return Permit\Holder\HolderInterface
+     * @return Permit\User\UserInterface
      **/
     public function actualUser();
 
     /**
      * @brief Sets the actual user
      *
-     * @param Permit\Holder\HolderInterface $user
+     * @param Permit\User\UserInterface $user
      * @param bool $persist Permist the user (in session)
      * @return void
      **/
-    public function setActualUser(HolderInterface $user, $persist=true);
+    public function setActualUser(UserInterface $user, $persist=true);
 
     /**
      * @brief Return the user currently set by an (admin) to be logged in as.
      *        If the user didnt login as someone different it returns null
      *
-     * @return Permit\Holder\HolderInterface|null
+     * @return Permit\User\UserInterface|null
      **/
     public function stackedUser();
 
@@ -40,11 +40,11 @@ interface DualContainerInterface extends ContainerInterface{
      * @brief Set the stacked user which is the user an admin wants to login
      *        as
      *
-     * @param Permit\Holder\HolderInterface $user
+     * @param Permit\User\UserInterface $user
      * @param bool $persist Permist the user (in session)
      * @return void
      **/
-    public function setStackedUser(HolderInterface $user, $persist=true);
+    public function setStackedUser(UserInterface $user, $persist=true);
 
     /**
      * @brief Force the user returned by user() to be self::ACTUAL

@@ -1,13 +1,13 @@
 <?php namespace Permit\CurrentUser;
 
-use Permit\Holder\HolderInterface;
+use Permit\User\UserInterface;
 
 interface ContainerInterface{
 
     /**
      * @brief Retrieve the current user.
      *
-     * @return Permit\Holder\HolderInterface
+     * @return \Permit\User\UserInterface
      **/
     public function user();
 
@@ -15,11 +15,11 @@ interface ContainerInterface{
      * @brief Set the current user. If a user should be logged in as a
      *        different user you shoul simply set a user a second time
      *
-     * @param Permit\Holder\HolderInterface $user
+     * @param \Permit\User\UserInterface $user
      * @param bool $persist Persists the user (in session)
-     * @return Permit\Holder\HolderInterface
+     * @return Permit\User\UserInterface
      **/
-    public function setUser(HolderInterface $user, $persist=true);
+    public function setUser(UserInterface $user, $persist=true);
 
     /**
      * @brief Sets the user to null

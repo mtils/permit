@@ -1,16 +1,26 @@
 <?php namespace Permit\CurrentUser;
 
-use Permit\Holder\HolderInterface;
+use Permit\User\UserInterface;
+use Permit\Permission\Holder\HolderInterface;
 use RuntimeException;
+use Permit\Access\CheckerInterface;
 
 class LoginValidator implements LoginValidatorInterface{
+
+    protected $checker;
+
+    public function __construct(CheckerInterface $checker){
+
+        $this->checker = $checker;
+
+    }
 
     /**
      * @brief Check a user before login. This method throws an exception if
      *        validation fails
      *
-     * @param Permit\Holder\HolderInterface $actualUser
-     * @param Permit\Holder\HolderInterface $stackedUser (optional)
+     * @param Permit\User\UserInterface $actualUser
+     * @param Permit\User\UserInterface $stackedUser (optional)
      * @return void
      *
      * @throws Permit\CurrentUser\LoginAsSuperUserException
@@ -18,7 +28,7 @@ class LoginValidator implements LoginValidatorInterface{
      * @throws Permit\CurrentUser\UnsufficientPermissionsException
      * @throws Permit\CurrentUser\LessPermissionsThanStackedException
      **/
-    public function validateOrFail(HolderInterface $actualUser, HolderInterface $stackedUser=NULL){
+    public function validateOrFail(UserInterface $actualUser, UserInterface $stackedUser=NULL){
 
         if($actualUser->isGuest() || $actualUser->isSystem()){
             throw new LoginAsSpecialUserException('You can\' login as a special user');
@@ -45,19 +55,8 @@ class LoginValidator implements LoginValidatorInterface{
             return;
         }
 
-        // Check if stackedUser has any permission actualUser has not
-        foreach($stackedUser->permissionCodes() as $permCode){
-
-            if($stackedUser->getPermissionAccess($permCode) === HolderInterface::GRANTED){
-
-                if($actualUser->getPermissionAccess($permCode) !== HolderInterface::GRANTED){
-
-                    throw new LessPermissionsThanStackedException('You cannot login as a user who has more permissions');
-
-                }
-
-            }
-
+        if(!$this->checker->hasAccess($actualUser, $stackedUser)){
+            throw new LessPermissionsThanStackedException('You cannot login as a user who has more permissions');
         }
 
     }

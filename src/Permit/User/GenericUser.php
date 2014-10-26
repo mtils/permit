@@ -1,6 +1,6 @@
-<?php namespace Permit\Holder;
+<?php namespace Permit\User;
 
-class Holder implements HolderInterface{
+class GenericUser implements UserInterface{
 
     protected $authId;
 

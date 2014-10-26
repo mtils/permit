@@ -1,4 +1,4 @@
-<?php namespace Permit\Holder;
+<?php namespace Permit\User;
 
 interface ProviderInterface{
 
@@ -7,7 +7,7 @@ interface ProviderInterface{
      *
      * @param mixed $identifier
      * @param string $counterCheckToken (optional) A token to verify its authenticity
-     * @return Permit\Holder\HolderInterface
+     * @return Permit\User\UserInterface
      **/
     public function retrieveByAuthId($identifier, $counterCheckToken=null);
 
