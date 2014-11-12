@@ -1,7 +1,7 @@
 <?php namespace Permit\Support\Sentry\Registration;
 
 use Permit\Registration\UserRepositoryInterface;
-use Permit\Registration\ActivatableUserInterface;
+use Permit\User\UserInterface;
 
 use Cartalyst\Sentry\Users\ProviderInterface;
 
@@ -19,7 +19,7 @@ class UserRepository implements UserRepositoryInterface{
      * @brief Creates a user with attributes $attributes
      *
      * @param array $attributes
-     * @return \Permit\Registration\ActivatableUserInterface
+     * @return \Permit\User\UserInterface
      **/
     public function create(array $attributes){
         return $this->sentryProvider->create($attributes);
@@ -28,9 +28,9 @@ class UserRepository implements UserRepositoryInterface{
     /**
      * @brief Saves the user
      *
-     * @param Permit\Registration\ActivatableUserInterface $user
+     * @param Permit\User\UserInterface $user
      **/
-    public function save(ActivatableUserInterface $user){
+    public function save(UserInterface $user){
         $user->save();
     }
 

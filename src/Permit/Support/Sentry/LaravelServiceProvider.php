@@ -133,9 +133,14 @@ class LaravelServiceProvider extends ServiceProvider{
 
     protected function registerRegistrarObject(){
 
-        // All interfaces a binded, so just make it
+        // All interfaces are binded, so just make it
         $this->app->singleton('Permit\Registration\RegistrarInterface', function($app){
-            return $app->make('Permit\Registration\Registrar');
+
+            $registrar = $app->make('Permit\Registration\Registrar');
+
+            $registrar->setEventDispatcher($app['events']);
+
+            return $registrar;
 
         });
 

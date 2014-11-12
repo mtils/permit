@@ -1,6 +1,6 @@
 <?php namespace Permit\Registration;
 
-use Permit\Registration\ActivatableUserInterface;
+use Permit\User\UserInterface;
 
 interface UserRepositoryInterface{
 
@@ -8,14 +8,14 @@ interface UserRepositoryInterface{
      * @brief Creates a user with attributes $attributes
      *
      * @param array $attributes
-     * @return \Permit\Registration\ActivatableUserInterface
+     * @return \Permit\User\UserInterface
      **/
     public function create(array $attributes);
 
     /**
      * @brief Saves the user
      *
-     * @param Permit\Registration\ActivatableUserInterface $user
+     * @param \Permit\User\UserInterface $user
      **/
-    public function save(ActivatableUserInterface $user);
+    public function save(UserInterface $user);
 }

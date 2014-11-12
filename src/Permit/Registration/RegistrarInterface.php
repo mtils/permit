@@ -1,5 +1,7 @@
 <?php namespace Permit\Registration;
 
+use Permit\User\UserInterface;
+
 /**
  * @brief The registrar registers, activates and deactivates users
  **/
@@ -11,26 +13,18 @@ interface RegistrarInterface{
      *
      * @param  array  $userData
      * @param  bool   $activate (default:false)
-     * @return \Permit\Registration\ActivatableUserInterface;
+     * @return \Permit\User\UserInterface
      */
     public function register(array $userData, $activate=false);
 
     /**
      * @brief Activates the user
      *
-     * @param \Permit\Registration\ActivatableUserInterface $user
+     * @param Permit\User\UserInterface $user
      * @param array $params The parameters like an activation code
      * @param bool $force Force the activation and skip normal activation validation
      * @return The activated user with groups assigned (or not)
      **/
-    public function activate(ActivatableUserInterface $user, array $params=[], $force=false);
-
-    /**
-     * @brief Deactivates a user
-     *
-     * @param \Permit\Registration\ActivatableUserInterface $user
-     * @return bool
-     **/
-    public function deactivate(ActivatableUserInterface $user);
+    public function activate(UserInterface $user, array $params=[], $force=false);
 
 }

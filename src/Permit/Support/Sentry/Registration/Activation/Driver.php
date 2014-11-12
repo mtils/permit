@@ -41,6 +41,53 @@ class Driver implements DriverInterface{
 
         $user->attemptActivation($params[0]);
 
+        return true;
+
+    }
+
+    /**
+     * Activate the user, no matter how or why
+     *
+     * @param \Permit\User\UserInterface $user
+     * @return bool
+     **/
+    public function forceActivation(UserInterface $user){
+
+        $this->checkForSentryInterface($user);
+
+        $user->attemptActivation($user->getActivationCode());
+
+        return true;
+
+    }
+
+    /**
+     * Return if the user is activated
+     *
+     * @param \Permit\User\UserInterface $user
+     * @return bool
+     **/
+    public function isActivated(UserInterface $user){
+
+        $this->checkForSentryInterface($user);
+
+        return $user->isActivated();
+
+    }
+
+    /**
+     * An assoziative array (key=>value) of activation data
+     * (code=>'dadsli874rwlefdusdo7izh')
+     *
+     * @param \Permit\User\UserInterface $user
+     * @return array
+     **/
+    public function getActivationData(UserInterface $user){
+
+        $this->checkForSentryInterface($user);
+
+        return ['code' => $user->activation_code];
+
     }
 
     protected function checkForSentryInterface(UserInterface $user){

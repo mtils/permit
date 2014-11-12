@@ -1,5 +1,6 @@
 <?php namespace Permit\Registration;
 
+use Permit\User\UserInterface;
 use Permit\Registration\Activation\DriverInterface;
 use Permit\Access\AssignerInterface;
 use InvalidArgumentException;
@@ -13,9 +14,9 @@ class Registrar implements RegistrarInterface{
 
     public $activatedEventName   = 'auth.activated';
 
-    public $assignedRightsEventName   = 'auth.assigned-rights';
+    public $activationReservedEventName = 'auth.activation-reserved';
 
-    public $deactivatedEventName = 'auth.deactivated';
+    public $assignedRightsEventName   = 'auth.assigned-rights';
 
     protected $userRepo;
 
@@ -41,7 +42,7 @@ class Registrar implements RegistrarInterface{
      *
      * @param  array  $userData
      * @param  bool   $activate (default:false)
-     * @return \Permit\Registration\ActivatableUserInterface;
+     * @return \Permit\User\UserInterface
      */
     public function register(array $userData, $activate=false){
 
@@ -50,7 +51,8 @@ class Registrar implements RegistrarInterface{
         $this->fire($this->registeredEventName, [$user, $activate]);
 
         if(!$activate){
-            $this->activationDriver->reserveActivation($userData);
+            $this->activationDriver->reserveActivation($user);
+            $this->fire($this->activationReservedEventName, [$user]);
         }
         else{
             $this->activate($user, [], true);
@@ -62,15 +64,15 @@ class Registrar implements RegistrarInterface{
     /**
      * @brief Activates the user
      *
-     * @param \Permit\Registration\ActivatableUserInterface $user
+     * @param \Permit\User\UserInterface $user
      * @param array $params The parameters like an activation code
      * @param bool $force Force the activation and skip normal activation validation
-     * @return \Permit\Registration\ActivatableUserInterface The activated user with groups assigned (or not)
+     * @return \Permit\User\UserInterface The activated user with groups assigned (or not)
      **/
-    public function activate(ActivatableUserInterface $user, array $params=[], $force=false){
+    public function activate(UserInterface $user, array $params=[], $force=false){
 
         if($force){
-            $user->activate();
+            $user->activationDriver->forceActivation($user);
         }
         else{
             $this->activationDriver->attemptActivation($user, $params);
@@ -83,17 +85,6 @@ class Registrar implements RegistrarInterface{
         $this->fire($this->assignedRightsEventName, [$user, $force]);
 
         return $user;
-    }
-
-    /**
-     * @brief Deactivates a user
-     *
-     * @param \Permit\Registration\ActivatableUserInterface $user
-     * @return bool
-     **/
-    public function deactivate(ActivatableUserInterface $user){
-        $user->deactivate();
-        return TRUE;
     }
 
     /**
@@ -112,13 +103,40 @@ class Registrar implements RegistrarInterface{
 
     }
 
+    public function getUserRepository(){
+        return $this->userRepo;
+    }
+
+    public function setUserRepository(UserRepositoryInterface $repo){
+        $this->userRepo = $repo;
+        return $this;
+    }
+
+    public function getActivationDriver(){
+        return $this->activationDriver;
+    }
+
+    public function setActivationDriver(DriverInterface $driver){
+        $this->activationDriver = $driver;
+        return $this;
+    }
+
+    public function getAccessAssigner(){
+        return $this->accessAssigner;
+    }
+
+    public function setAccessAssigner(AssignerInterface $assigner){
+        $this->accessAssigner = $assigner;
+        return $this;
+    }
+
     public function getEventDispatcher(){
         return $this->eventDispatcher;
     }
 
     public function setEventDispatcher($dispatcher){
 
-        if(!is_object($dispatcher) || method_exists($dispatcher,'fire')){
+        if(!is_object($dispatcher) || !method_exists($dispatcher,'fire')){
             throw new InvalidArgumentException('EventDispatcher has to have a fire() method');
         }
 
