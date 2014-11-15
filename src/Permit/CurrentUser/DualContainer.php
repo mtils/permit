@@ -58,6 +58,7 @@ class DualContainer implements DualContainerInterface{
                 return $user;
             }
         }
+
         // If not return the stacked
         elseif($user = $this->stackedContainer->user()){
             return $user;

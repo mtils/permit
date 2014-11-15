@@ -116,7 +116,8 @@ class LaravelServiceProvider extends ServiceProvider{
     protected function registerActivationDriver(){
 
         $this->app->singleton('Permit\Registration\Activation\DriverInterface', function($app){
-            return new Driver();
+            return $app->make('Permit\Support\Sentry\Registration\Activation\Driver',
+                              [$app['sentry.user']]);
 
         });
 

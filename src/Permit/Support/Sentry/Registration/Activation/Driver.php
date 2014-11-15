@@ -2,15 +2,29 @@
 
 use Permit\User\UserInterface;
 use Permit\Registration\Activation\DriverInterface;
+use Permit\Registration\Activation\ActivationDataInvalidException;
+use Permit\User\UserNotFoundException;
 
 use Cartalyst\Sentry\Users\UserInterface as SentryUserInterface;
+use Cartalyst\Sentry\Users\UserAlreadyActivatedException;
+use Cartalyst\Sentry\Users\ProviderInterface;
+use Cartalyst\Sentry\Users\UserNotFoundException as SentryNotFoundException;
 
 use InvalidArgumentException;
 
+
 class Driver implements DriverInterface{
 
+    protected $userProvider;
+
+    public function __construct(ProviderInterface $userProvider){
+
+        $this->userProvider = $userProvider;
+
+    }
+
     /**
-     * @brief Reserves a user for activation but does not activate him
+     * @brief Reserves a user for activation but does not activate him.
      *
      * @param \Permit\User\UserInterface $user
      * @return bool
@@ -20,28 +34,53 @@ class Driver implements DriverInterface{
         $this->checkForSentryInterface($user);
 
         // Sentry automatically saves the user...
-        $user->getActivationCode();
+        if($activationCode = $user->getActivationCode()){
+            return TRUE;
+        }
 
-        return TRUE;
+        return FALSE;
 
     }
 
     /**
-     * @brief Try to activate the user with the given params. It depends on
-     *        the implementation what the params are. If you have a simple
-     *        activation code based system you would pass [$activationCode]
+     * Find a user by activationdata. If you have a simple
+     * activation code based system you would pass ['code'=>$activationCode]
      *
-     * @param \Permit\User\UserInterface $user
-     * @param array $params (optional) The activation params
-     * @return bool
+     * This method should not throw any domain logic exceptions.
+     * 
+     * Its part of the RegistrarInterface to deceide if an exception has
+     * to be thrown if the user is already activated or other domain
+     * specific reasons.
+     *
+     * If activation data is invalid or the user is not found it must throw
+     * an exception
+     *
+     * @throws Permit\Registration\Activation\ActivationDataInvalidException
+     * @throws Permit\User\UserNotFoundException
+     *
+     * @param array $activationData The activation params
+     * @return \Permit\User\UserInterface
      **/
-    public function attemptActivation(UserInterface $user, array $params=[]){
+    public function getUserByActivationData(array $activationData){
 
-        $this->checkForSentryInterface($user);
+        $this->checkActivationData($activationData);
 
-        $user->attemptActivation($params[0]);
+        try{
 
-        return true;
+            $user = $this->userProvider->findByActivationCode($activationData['code']);
+
+            $this->checkForSentryInterface($user);
+
+            return $user;
+
+        }
+        catch(SentryNotFoundException $e){
+
+            throw new UserNotFoundException();
+
+        }
+
+        return $user;
 
     }
 
@@ -51,13 +90,21 @@ class Driver implements DriverInterface{
      * @param \Permit\User\UserInterface $user
      * @return bool
      **/
-    public function forceActivation(UserInterface $user){
+    public function activate(UserInterface $user){
 
         $this->checkForSentryInterface($user);
 
-        $user->attemptActivation($user->getActivationCode());
+        try{
 
-        return true;
+            return $user->attemptActivation($user->getActivationCode());
+
+        }
+        catch(UserAlreadyActivatedException $e){
+
+            return false;
+
+        }
+
 
     }
 
@@ -87,6 +134,22 @@ class Driver implements DriverInterface{
         $this->checkForSentryInterface($user);
 
         return ['code' => $user->activation_code];
+
+    }
+
+    /**
+     * Check if activation data is valid
+     *
+     * @throws Permit\Registration\Activation\ActivationDataInvalidException
+     *
+     * @param array $activationData
+     * @return void
+     **/
+    protected function checkActivationData(array $activationData){
+
+        if( !isset($activationData['code']) || strlen($activationData['code']) < 16){
+            throw new ActivationDataInvalidException();
+        }
 
     }
 

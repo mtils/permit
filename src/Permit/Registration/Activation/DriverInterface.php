@@ -1,6 +1,11 @@
 <?php namespace Permit\Registration\Activation;
 
+use UnderflowException;
+use UnexpectedValueException;
+
 use Permit\User\UserInterface;
+
+class ActivationDataInvalidException extends UnexpectedValueException{}
 
 /**
  * @brief An Activation\Driver is a class which manages the activation.
@@ -22,15 +27,25 @@ interface DriverInterface{
     public function reserveActivation(UserInterface $user);
 
     /**
-     * @brief Try to activate the user with the given params. It depends on
-     *        the implementation what the params are. If you have a simple
-     *        activation code based system you would pass [$activationCode]
+     * Find a user by activationdata. If you have a simple
+     * activation code based system you would pass ['code'=>$activationCode]
      *
-     * @param \Permit\User\UserInterface $user
-     * @param array $params (optional) The activation params
-     * @return bool
+     * This method should not throw any domain logic exceptions.
+     * 
+     * Its part of the RegistrarInterface to deceide if an exception has
+     * to be thrown if the user is already activated or other domain
+     * specific reasons.
+     *
+     * If activation data is invalid or the user is not found it should throw
+     * an exception
+     *
+     * @throws Permit\Registration\Activation\ActivationDataInvalidException
+     * @throws Permit\User\UserNotFoundException
+     *
+     * @param array $activationData The activation params
+     * @return \Permit\User\UserInterface
      **/
-    public function attemptActivation(UserInterface $user, array $params=[]);
+    public function getUserByActivationData(array $activationData);
 
     /**
      * Activate the user, no matter how or why
@@ -38,7 +53,7 @@ interface DriverInterface{
      * @param \Permit\User\UserInterface $user
      * @return bool
      **/
-    public function forceActivation(UserInterface $user);
+    public function activate(UserInterface $user);
 
     /**
      * Return if the user is activated
