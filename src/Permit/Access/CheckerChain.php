@@ -19,7 +19,7 @@ class CheckerChain implements CheckerInterface{
     public function hasAccess(UserInterface $user, $resource, $context='access'){
 
         foreach($this->checkers as $checker){
-            if(!$checker->hasAccess($user, $resource, $context)){
+            if($checker->hasAccess($user, $resource, $context) === false){
                 return false;
             }
         }

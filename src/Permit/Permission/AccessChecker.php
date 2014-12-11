@@ -29,7 +29,7 @@ class AccessChecker implements CheckerInterface{
      * @param Permit\Permission\Holder\HolderInterface $holder The Holder of permission codes
      * @param string|Permit\Permission\PermissionableInterface|array $resource The resource
      * @param int $context (optional)
-     * @return bool
+     * @return bool|null
      **/
     public function hasPermissionAccess(HolderInterface $holder, $resourceOrCode, $context=PermissionableInterface::ACCESS){
 
@@ -47,7 +47,7 @@ class AccessChecker implements CheckerInterface{
             $codes = [$resourceOrCode];
         }
         else{
-            throw InvalidArgumentException("No idea how to check permissions of argument");
+            return null;
         }
 
         foreach($codes as $code){

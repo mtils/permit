@@ -10,14 +10,14 @@ class Checker implements CheckerInterface{
      * @param Permit\User\UserInterface $holder The Holder of permission codes
      * @param mixed $resource The resource
      * @param string $context (optional)
-     * @return bool
+     * @return bool|null
      **/
     public function hasAccess(UserInterface $holder, $resource, $context='access'){
 
         if($holder->isSuperUser()){
             return true;
         }
-        return false;
+        return null;
     }
 
 }
