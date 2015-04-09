@@ -10,7 +10,6 @@ use Permit\User\UserInterface;
 use Permit\Permission\PermissionableInterface;
 use Permit\Registration\RegistrarInterface;
 
-
 class AuthService implements CheckerInterface, DualContainerInterface{
 
     /**

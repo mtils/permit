@@ -23,27 +23,10 @@ trait HolderTrait{
      **/
     public function getPermissionAccess($code){
 
-        $codeParts = explode('.',$code);
-        $prefix = '';
-
-        if( count($codeParts) > 1){
-            array_pop($codeParts);
-            $prefix = implode('.',$codeParts);
-        }
-
         $permissions = ($this instanceof GroupInterface) ? $this->getPermissions() : $this->getMergedPermissions();
 
-        foreach($permissions as $codeKey=>$access){
-
-            if($codeKey == $code){
-                return $access;
-            }
-
-            if(substr($codeKey,-1) == '*'){
-                if(substr($codeKey,0,-1) == $prefix){
-                    return $access;
-                }
-            }
+        if(isset($permissions[$code])){
+            return $permissions[$code];
         }
 
         return HolderInterface::INHERITED;

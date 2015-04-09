@@ -51,13 +51,52 @@ class AccessChecker implements CheckerInterface{
         }
 
         foreach($codes as $code){
-            if($holder->getPermissionAccess($code) != HolderInterface::GRANTED){
+
+            $access = $this->getPermissionCodeAccess($holder, $code);
+
+            if($access == HolderInterface::GRANTED){
+                return true;
+            }
+
+            if($access == HolderInterface::DENIED){
                 return false;
             }
+
+            $fuzzyAccess = $this->getPermissionCodeAccess(
+                $holder,
+                $this->getFuzzyCode($code)
+            );
+
+            if($fuzzyAccess == HolderInterface::GRANTED){
+                return true;
+            }
+
+            if($fuzzyAccess == HolderInterface::DENIED){
+                return false;
+            }
+
+
         }
 
-        return true;
+        return false;
 
+    }
+
+    protected function getPermissionCodeAccess(HolderInterface $holder, $code){
+        return $holder->getPermissionAccess($code);
+    }
+
+    public function getFuzzyCode($code){
+
+        $codeParts = explode('.',$code);
+
+        if( count($codeParts) > 1){
+            array_pop($codeParts);
+            $prefix = implode('.',$codeParts);
+            return "$prefix.*";
+        }
+
+        return '';
     }
 
 }
