@@ -1,24 +1,8 @@
 <?php namespace Permit\Permission\Holder;
 
-interface HolderInterface{
+trait GenericHolderTrait{
 
-    /**
-     * @brief Access is granted
-     * @var int
-     **/
-    const GRANTED = 1;
-
-    /**
-     * @brief Access is not granted. (If code is not present or access = 0)
-     * @var int
-     **/
-    const INHERITED = 0;
-
-    /**
-     * @brief Access is denied
-     * @var int
-     **/
-    const DENIED = -1;
+    protected $permissionCodes = [];
 
     /**
      * @brief Returns the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
@@ -27,7 +11,12 @@ interface HolderInterface{
      * @param string $code
      * @return bool
      **/
-    public function getPermissionAccess($code);
+    public function getPermissionAccess($code){
+        if(isset($this->permissionCodes[$code])){
+            return $this->permissionCodes[$code];
+        }
+        return self::INHERITED;
+    }
 
     /**
      * @brief Sets the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
@@ -37,13 +26,17 @@ interface HolderInterface{
      * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
      * @return void
      **/
-    public function setPermissionAccess($code, $access);
+    public function setPermissionAccess($code, $access){
+        $this->permissionCodes[$code] = $access;
+    }
 
     /**
-     * @param Returns all permission codes (indexed array)
+     * @param Returns all permission codes (numeric array)
      *
      * @return array
      **/
-    public function permissionCodes();
+    public function permissionCodes(){
+        return array_keys($this->permissionCodes);
+    }
 
 }

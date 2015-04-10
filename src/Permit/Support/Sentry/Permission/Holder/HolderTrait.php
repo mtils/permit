@@ -50,18 +50,11 @@ trait HolderTrait{
     /**
      * @param Returns all permission codes
      *
-     * @param bool $inherited
      * @return array
      **/
-    public function permissionCodes($inherited=true){
+    public function permissionCodes(){
 
-        $permissions = ($this instanceof GroupInterface) ? $this->getPermissions() : $this->getMergedPermissions();
-
-        if($inherited){
-            return array_keys($permissions);
-        }
-
-        return $this->permissions;
+        return array_keys($this->getPermissions());
 
     }
 

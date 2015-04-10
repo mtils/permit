@@ -1,13 +1,19 @@
 <?php namespace Permit\User;
 
-use Permit\Permission\Holder\HolderInterface;
+use Permit\Permission\Holder\HolderInterface as PermissionHolder;
+use Permit\Permission\Holder\GenericHolderTrait as PermissionHolderTrait;
+use Permit\Groups\GenericHolderTrait as GroupHolderTrait;
+use Permit\Groups\HolderInterface as GroupHolder;
+use Permit\Permission\Holder\NestedHolderInterface;
 
-class GenericUser implements UserInterface, HolderInterface
+class GenericUser implements UserInterface, PermissionHolder, NestedHolderInterface, GroupHolder
 {
 
-    protected $authId;
+    use PermissionHolderTrait;
 
-    protected $permissionCodes = [];
+    use GroupHolderTrait;
+
+    protected $authId;
 
     protected $guest;
 
@@ -16,48 +22,14 @@ class GenericUser implements UserInterface, HolderInterface
     /**
      * @brief returns a unique id for this user
      **/
-    public function getAuthId(){
+    public function getAuthId()
+    {
         return $this->authId;
     }
 
-    public function setAuthId($authId){
+    public function setAuthId($authId)
+    {
         $this->authId = $authId;
-    }
-
-    /**
-     * @brief Returns the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
-     *        for a permission $code (string)
-     *
-     * @param string $code
-     * @return bool
-     **/
-    public function getPermissionAccess($code){
-        if(isset($this->permissionCodes[$code])){
-            return $this->permissionCodes[$code];
-        }
-        return self::INHERITED;
-    }
-
-    /**
-     * @brief Sets the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
-     *        for the passed permission $code (string)
-     *
-     * @param string $code The permission code
-     * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
-     * @return void
-     **/
-    public function setPermissionAccess($code, $access){
-        $this->permissionCodes[$code] = $access;
-    }
-
-    /**
-     * @param Returns all permission codes
-     *
-     * @param bool $inherited
-     * @return array
-     **/
-    public function permissionCodes($inherited=true){
-        return array_keys($this->permissionCodes);
     }
 
     /**
@@ -66,11 +38,13 @@ class GenericUser implements UserInterface, HolderInterface
      *
      * @return bool
      **/
-    public function isGuest(){
+    public function isGuest()
+    {
         return $this->guest;
     }
 
-    public function setIsGuest($isGuest){
+    public function setIsGuest($isGuest)
+    {
         $this->guest = $isGuest;
     }
 
@@ -80,11 +54,13 @@ class GenericUser implements UserInterface, HolderInterface
      *
      * @return bool
      **/
-    public function isSystem(){
+    public function isSystem()
+    {
         return $this->system;
     }
 
-    public function setIsSystem($isSystem){
+    public function setIsSystem($isSystem)
+    {
         $this->system = $isSystem;
     }
 
@@ -93,15 +69,27 @@ class GenericUser implements UserInterface, HolderInterface
      *
      * @return bool
      **/
-    public function isSuperUser(){
+    public function isSuperUser()
+    {
         return $this->isSystem();
+    }
+
+    /**
+     * Returns subholders of this Holder
+     *
+     * @return \Traversable<\Permit\Permission\Holder\HolderInterface>
+     **/
+    public function getSubHolders()
+    {
+        return $this->getGroups();
     }
 
     /**
      * @brief This is a helper to not have guest or system user strings on
      *        youre site
      **/
-    public function __get($name){
+    public function __get($name)
+    {
         return '';
     }
 
@@ -109,7 +97,8 @@ class GenericUser implements UserInterface, HolderInterface
      * @brief This is a helper to not have guest or system user strings on
      *        youre site
      **/
-    public function __call($method, array $params){
+    public function __call($method, array $params)
+    {
         return '';
     }
 

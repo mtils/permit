@@ -4,10 +4,15 @@ use Permit\Permission\AccessChecker;
 use Permit\Access\CheckerInterface;
 use Permit\User\GenericUser;
 use Permit\Permission\Holder\HolderInterface;
+use Permit\Permission\PermissionableInterface;
+use Permit\Permission\GenericPermissionableTrait;
+use Permit\Groups\GenericGroup;
 
-class AccessCheckerTest extends PHPUnit_Framework_TestCase{
+class AccessCheckerTest extends PHPUnit_Framework_TestCase
+{
 
-    public function testImplementsInterface(){
+    public function testImplementsInterface()
+    {
 
         $checker = $this->newChecker();
 
@@ -15,79 +20,372 @@ class AccessCheckerTest extends PHPUnit_Framework_TestCase{
 
     }
 
-    public function testHasAccessReturnsFalseIfNotGranted(){
+    public function testHasAccessReturnsFalseIfNotGranted()
+    {
 
-        $user = new GenericUser;
+        $user = $this->newUser();
         $checker = $this->newChecker();
 
-        $this->assertFalse($checker->hasPermissionAccess($user, 'test.access'));
+        $this->assertFalse($checker->hasAccess($user, 'test.access'));
 
     }
 
-    public function testHasAccessReturnsFalseIfDenied(){
+    public function testHasAccessReturnsFalseIfDenied()
+    {
 
-        $user = new GenericUser;
+        $user = $this->newUser();
         $checker = $this->newChecker();
 
         $user->setPermissionAccess('test.access', HolderInterface::DENIED);
 
-        $this->assertFalse($checker->hasPermissionAccess($user, 'test.access'));
+        $this->assertFalse($checker->hasAccess($user, 'test.access'));
 
     }
 
-    public function testHasAccessReturnsFalseIfInherited(){
+    public function testHasAccessReturnsFalseIfInherited()
+    {
 
-        $user = new GenericUser;
+        $user = $this->newUser();
         $checker = $this->newChecker();
 
         $user->setPermissionAccess('test.access', HolderInterface::INHERITED);
 
-        $this->assertFalse($checker->hasPermissionAccess($user, 'test.access'));
+        $this->assertFalse($checker->hasAccess($user, 'test.access'));
 
     }
 
-    public function testHasAccessReturnsTrueIfGranted(){
+    public function testHasAccessReturnsTrueIfGranted()
+    {
 
-        $user = new GenericUser;
+        $user = $this->newUser();
         $checker = $this->newChecker();
         $user->setPermissionAccess('test.modify', HolderInterface::GRANTED);
 
-        $this->assertTrue($checker->hasPermissionAccess($user, 'test.modify'));
+        $this->assertTrue($checker->hasAccess($user, 'test.modify'));
 
     }
 
-    public function testHasAccessReturnsTrueIfFuzzyGranted(){
+    public function testCreateFuzzyCodeReturnsCorrectCode()
+    {
+        
+        $checker = $this->newChecker();
 
-        $user = new GenericUser;
+        $this->assertEquals('cms.*', $checker->getFuzzyCode('cms.access'));
+        $this->assertEmpty($checker->getFuzzyCode('cms'));
+        $this->assertEquals('cms.page.*', $checker->getFuzzyCode('cms.page.edit'));
+
+    }
+
+    public function testHasAccessReturnsTrueIfFuzzyGranted()
+    {
+
+        $user = $this->newUser();
         $checker = $this->newChecker();
         $user->setPermissionAccess('test.*', HolderInterface::GRANTED);
 
-        $this->assertTrue($checker->hasPermissionAccess($user, 'test.modify'));
+        $this->assertTrue($checker->hasAccess($user, 'test.modify'));
 
     }
 
-    public function testHasAccessReturnsTrueIfFuzzyDenied(){
+    public function testHasAccessReturnsTrueIfFuzzyDenied()
+    {
 
-        $user = new GenericUser;
+        $user = $this->newUser();
         $checker = $this->newChecker();
         $user->setPermissionAccess('test.*', HolderInterface::DENIED);
 
-        $this->assertFalse($checker->hasPermissionAccess($user, 'test.modify'));
+        $this->assertFalse($checker->hasAccess($user, 'test.modify'));
 
     }
 
-    public function testHasAccessReturnsTrueIfFuzzyInherited(){
+    public function testHasAccessReturnsTrueIfFuzzyInherited()
+    {
 
-        $user = new GenericUser;
+        $user = $this->newUser();
         $checker = $this->newChecker();
         $user->setPermissionAccess('test.*', HolderInterface::INHERITED);
 
-        $this->assertFalse($checker->hasPermissionAccess($user, 'test.modify'));
+        $this->assertFalse($checker->hasAccess($user, 'test.modify'));
 
     }
 
-    protected function newChecker(){
+    public function testHasPermissionAccessReturnsTrueIfSuperUser()
+    {
+        
+        $user = $this->newUser();
+        $superUser = $this->newUser();
+        $superUser->setIsSystem(true);
+        $checker = $this->newChecker();
+
+        $this->assertFalse($checker->hasAccess($user, 'test.modify'));
+        $this->assertTrue($checker->hasAccess($superUser, 'test.modify'));
+
+
+    }
+
+    public function testGetMergedSubHolderAccessReturnsInheritedIfCodeNotFound()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $groups = [$moderatorGroup, $publisherGroup, $maintainerGroup];
+
+        $this->assertSame(
+            HolderInterface::INHERITED,
+            $checker->getMergedSubHoldersAccess($groups, 'cms.access')
+        );
+        
+    }
+
+    public function testGetMergedSubHolderAccessReturnsGrantedIfOneGranted()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $groups = [$moderatorGroup, $publisherGroup, $maintainerGroup];
+        $code = 'cms.access';
+    
+
+        $publisherGroup->setPermissionAccess($code, HolderInterface::GRANTED);
+
+        $this->assertSame(
+            HolderInterface::GRANTED,
+            $checker->getMergedSubHoldersAccess($groups, $code)
+        );
+        
+    }
+
+    public function testGetMergedSubHolderAccessReturnsGrantedIfOneGrantedAndOthersInherited()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $groups = [$moderatorGroup, $publisherGroup, $maintainerGroup];
+        $code = 'cms.access';
+    
+
+        $moderatorGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+
+        $this->assertSame(
+            HolderInterface::GRANTED,
+            $checker->getMergedSubHoldersAccess($groups, $code)
+        );
+        
+    }
+
+    public function testGetMergedSubHolderAccessReturnsDeniedIfOneGrantedAndOtherDenied()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $groups = [$moderatorGroup, $publisherGroup, $maintainerGroup];
+        $code = 'cms.access';
+    
+
+        $moderatorGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code, HolderInterface::DENIED);
+
+        $this->assertSame(
+            HolderInterface::DENIED,
+            $checker->getMergedSubHoldersAccess($groups, $code)
+        );
+        
+    }
+
+    public function testPermissonInSubHoldersAppliesIfNotInHolder()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $user = $this->newUser();
+        $user->attachGroup($moderatorGroup);
+        $user->attachGroup($publisherGroup);
+        $user->attachGroup($maintainerGroup);
+        $code = 'cms.access';
+        $code2 = 'newsletter.send';
+    
+
+        $moderatorGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+
+        $moderatorGroup->setPermissionAccess($code2, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code2, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code2, HolderInterface::DENIED);
+
+        $this->assertTrue($checker->hasAccess($user, $code));
+        $this->assertFalse($checker->hasAccess($user, $code2));
+        
+    }
+
+    public function testPermissonInSubHoldersAppliesIfInheritedInHolder()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $user = $this->newUser();
+        $user->attachGroup($moderatorGroup);
+        $user->attachGroup($publisherGroup);
+        $user->attachGroup($maintainerGroup);
+        $code = 'cms.access';
+        $code2 = 'newsletter.send';
+    
+        $user->setPermissionAccess($code, HolderInterface::INHERITED);
+        $user->setPermissionAccess($code2, HolderInterface::INHERITED);
+        $moderatorGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+
+        $moderatorGroup->setPermissionAccess($code2, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code2, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code2, HolderInterface::DENIED);
+
+
+        $this->assertTrue($checker->hasAccess($user, $code));
+        $this->assertFalse($checker->hasAccess($user, $code2));
+        
+    }
+
+    public function testPermissonInSubHoldersDoesNotApplyIfGrantedInHolder()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $user = $this->newUser();
+        $user->attachGroup($moderatorGroup);
+        $user->attachGroup($publisherGroup);
+        $user->attachGroup($maintainerGroup);
+        $code = 'cms.access';
+        $code2 = 'newsletter.send';
+    
+        $user->setPermissionAccess($code, HolderInterface::GRANTED);
+        $user->setPermissionAccess($code2, HolderInterface::GRANTED);
+        $moderatorGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $maintainerGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+
+        $moderatorGroup->setPermissionAccess($code2, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code2, HolderInterface::DENIED);
+        $maintainerGroup->setPermissionAccess($code2, HolderInterface::INHERITED);
+
+        $this->assertTrue($checker->hasAccess($user, $code));
+        $this->assertTrue($checker->hasAccess($user, $code2));
+        
+    }
+
+    public function testPermissonInSubHoldersDoesNotApplyIfDeniedInHolder()
+    {
+        
+        $checker = $this->newChecker();
+        $moderatorGroup = $this->newGroup();
+        $publisherGroup = $this->newGroup();
+        $maintainerGroup = $this->newGroup();
+        $user = $this->newUser();
+        $user->attachGroup($moderatorGroup);
+        $user->attachGroup($publisherGroup);
+        $user->attachGroup($maintainerGroup);
+        $code = 'cms.access';
+        $code2 = 'newsletter.send';
+    
+        $user->setPermissionAccess($code, HolderInterface::DENIED);
+        $user->setPermissionAccess($code2, HolderInterface::DENIED);
+        $moderatorGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+        $publisherGroup->setPermissionAccess($code, HolderInterface::GRANTED);
+        $maintainerGroup->setPermissionAccess($code, HolderInterface::INHERITED);
+
+        $moderatorGroup->setPermissionAccess($code2, HolderInterface::DENIED);
+        $publisherGroup->setPermissionAccess($code2, HolderInterface::DENIED);
+        $maintainerGroup->setPermissionAccess($code2, HolderInterface::DENIED);
+
+        $this->assertFalse($checker->hasAccess($user, $code));
+        $this->assertFalse($checker->hasAccess($user, $code2));
+        
+    }
+
+    public function testHasAccessAllowsOnlyIfAllPassedCodesAreGranted()
+    {
+        
+        $checker = $this->newChecker();
+        $user = $this->newUser();
+        $code = 'cms.access';
+        $code2 = 'newsletter.send';
+        $code3 = 'user.activate';
+
+        $user->setPermissionAccess($code, HolderInterface::GRANTED);
+        $user->setPermissionAccess($code2, HolderInterface::GRANTED);
+        $user->setPermissionAccess($code3, HolderInterface::DENIED);
+
+        $this->assertFalse($checker->hasAccess($user,[$code, $code2, $code3]));
+        $this->assertTrue($checker->hasAccess($user,[$code, $code2]));
+        $this->assertFalse($checker->hasAccess($user,[$code, $code3]));
+
+    }
+
+    public function testHasAccessSupportsPermissionableInterface()
+    {
+        
+        $checker = $this->newChecker();
+        $user = $this->newUser();
+        
+
+        $code = 'cms.access';
+        $code2 = 'newsletter.send';
+        $code3 = 'user.activate';
+
+        $user->setPermissionAccess($code, HolderInterface::GRANTED);
+        $user->setPermissionAccess($code2, HolderInterface::GRANTED);
+        $user->setPermissionAccess($code3, HolderInterface::DENIED);
+
+        $permissionable = $this->newPermissionable([$code, $code2, $code3]);
+        $permissionable2 = $this->newPermissionable([$code, $code2]);
+        $permissionable3 = $this->newPermissionable([$code, $code3]);
+
+        $this->assertFalse($checker->hasAccess($user, $permissionable));
+        $this->assertTrue($checker->hasAccess($user, $permissionable2));
+        $this->assertFalse($checker->hasAccess($user, $permissionable3));
+
+    }
+
+    protected function newChecker()
+    {
         return new AccessChecker;
     }
 
+    protected function newUser()
+    {
+        return new GenericUser;
+    }
+
+    protected function newGroup()
+    {
+        return new GenericGroup;
+    }
+
+    protected function newPermissionable(array $requiredCodes=[]){
+        $permissionable = new Permissionable;
+        $permissionable->setRequiredPermissionCodes($requiredCodes);
+        return $permissionable;
+    }
+
+}
+
+class Permissionable implements PermissionableInterface{
+    use GenericPermissionableTrait;
 }

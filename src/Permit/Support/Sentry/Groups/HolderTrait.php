@@ -34,4 +34,12 @@ trait HolderTrait{
         return $this->inGroup($group);
     }
 
+    /**
+     * @see \Permit\Permission\Holder\NestedHolderInterface
+     * @return \Traversable<\Permit\Permission\Holder\HolderInterface>
+     **/
+    public function getSubHolders(){
+        return $this->groups;
+    }
+
 }
