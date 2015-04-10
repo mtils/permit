@@ -21,20 +21,20 @@ interface HolderInterface{
     const DENIED = -1;
 
     /**
-     * @brief Returns the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
+     * @brief Returns the access (self::GRANTED|self::INHERITED|self::DENIED)
      *        for a permission $code (string)
      *
      * @param string $code
-     * @return bool
+     * @return int
      **/
     public function getPermissionAccess($code);
 
     /**
-     * @brief Sets the access (self::GRANTED|self::UNAPPROVED|self::DENIED)
+     * @brief Sets the access (self::GRANTED|self::INHERITED|self::DENIED)
      *        for the passed permission $code (string)
      *
      * @param string $code The permission code
-     * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
+     * @param int $access self::GRANTED|self::INHERITED|self::DENIED
      * @return void
      **/
     public function setPermissionAccess($code, $access);

@@ -1,10 +1,11 @@
 <?php namespace Permit\Support\Sentry\Permission\Holder;
 
+
 use Permit\Permission\Holder\HolderInterface;
-use Cartalyst\Sentry\Groups\GroupInterface;
 
 
-trait HolderTrait{
+trait HolderTrait
+{
 
     /**
      * @brief returns a unique id for this user
@@ -21,9 +22,10 @@ trait HolderTrait{
      * @param string $code
      * @return bool
      **/
-    public function getPermissionAccess($code){
+    public function getPermissionAccess($code)
+    {
 
-        $permissions = ($this instanceof GroupInterface) ? $this->getPermissions() : $this->getMergedPermissions();
+        $permissions = $this->getPermissions();
 
         if(isset($permissions[$code])){
             return $permissions[$code];
@@ -40,7 +42,8 @@ trait HolderTrait{
      * @param int $access self::GRANTED|self::UNAPPROVED|self::DENIED
      * @return void
      **/
-    public function setPermissionAccess($code, $access){
+    public function setPermissionAccess($code, $access)
+    {
 
         $permissions = $this->permissions;
         $permissions[$code] = $access;
@@ -52,10 +55,9 @@ trait HolderTrait{
      *
      * @return array
      **/
-    public function permissionCodes(){
-
+    public function permissionCodes()
+    {
         return array_keys($this->getPermissions());
-
     }
 
 }
