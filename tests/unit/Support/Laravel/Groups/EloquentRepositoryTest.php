@@ -2,7 +2,6 @@
 
 use Mockery as m;
 
-use Illuminate\Database\Eloquent\Model;
 use Permit\Support\Laravel\Groups\EloquentRepository;
 use Permit\Support\Laravel\Groups\EloquentGroup;
 

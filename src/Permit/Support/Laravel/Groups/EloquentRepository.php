@@ -11,7 +11,8 @@ class EloquentRepository implements GroupRepositoryInterface{
      **/
     protected $groupModel;
 
-    public function __construct(Model $groupModel){
+    public function __construct(Model $groupModel)
+    {
         $this->groupModel = $groupModel;
     }
 

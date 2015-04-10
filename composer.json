@@ -16,7 +16,8 @@
   },
   "require-dev": {
     "mockery/mockery": "~0.9",
-    "laravel/database": "4.2.*"
+    "illuminate/database": "4.2.*",
+    "illuminate/auth": "4.2.*"
   },
   "autoload": {
     "psr-0": {
