@@ -25,6 +25,12 @@ class EloquentModel
             return $this->{$mutatorName}($value);
         }
 
+        $relationName = $this->getRelationMethodName($key);
+
+        if(method_exists($this, $relationName)){
+            return $this->{$relationName}()->getResults();
+        }
+
         return $value;
 
     }
@@ -51,7 +57,15 @@ class EloquentModel
 
     protected function getAttributeMutatorName($key)
     {
-        return ucwords(str_replace(array('-', '_'), ' ', $key)).'Attribute';
+        return $this->studly($key).'Attribute';
+    }
+
+    protected function getRelationMethodName($key){
+        return lcfirst($this->studly($key));
+    }
+
+    protected function studly($value){
+        return ucwords(str_replace(array('-', '_'), ' ', $value));
     }
 
 }
