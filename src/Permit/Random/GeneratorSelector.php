@@ -99,7 +99,7 @@ class GeneratorSelector implements GeneratorInterface
      * @param bool $asciiOnly
      * @return string
      **/
-    public function generate($length=42, $asciiOnly=True)
+    public function generate($length=self::DEFAULT_KEYLENGTH, $asciiOnly=True)
     {
         return $this->getStrongestGenerator()->generate($length, $asciiOnly);
     }

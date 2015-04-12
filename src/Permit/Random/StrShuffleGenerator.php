@@ -33,7 +33,7 @@ class StrShuffleGenerator implements GeneratorInterface
      * @param bool $asciiOnly
      * @return string
      **/
-    public function generate($length=42, $asciiOnly=True)
+    public function generate($length=self::DEFAULT_KEYLENGTH, $asciiOnly=True)
     {
 
         if($length < 1){
