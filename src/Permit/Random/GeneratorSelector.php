@@ -84,7 +84,12 @@ class GeneratorSelector implements GeneratorInterface
      **/
     public function isSupported()
     {
-        return ($this->getStrongestGenerator() instanceof GeneratorInterface);
+        try{
+            return ($this->getStrongestGenerator() instanceof GeneratorInterface);
+        }
+        catch (UnderflowException $e) {
+            return false;
+        }
     }
 
     /**

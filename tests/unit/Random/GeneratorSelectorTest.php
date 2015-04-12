@@ -18,17 +18,17 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
     {
         $selector = $this->newGenerator();
         $generator = $this->mock();
-        
+
         $selector->add($generator);
-    
+
         $this->assertEquals([$generator],$selector->getGenerators());
 
         $generator2 = $this->mock();
-        
+
         $selector->add($generator2);
 
         $this->assertEquals([$generator, $generator2],$selector->getGenerators());
-        
+
     }
 
     public function testRemoveGenerator()
@@ -38,10 +38,10 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
         $generator->id = 1;
         $generator2 = $this->mock();
         $generator2->id = 2;
-        
+
         $selector->add($generator);
         $selector->add($generator2);
-    
+
         $this->assertEquals([$generator, $generator2], $selector->getGenerators());
 
         $selector->remove($generator);
@@ -51,7 +51,7 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
         $selector->remove($generator2);
 
         $this->assertEquals([], $selector->getGenerators());
-        
+
     }
 
     public function testGetStrongestGeneratorReturnStrongest()
@@ -60,7 +60,7 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
         $generator = $this->mock();
         $generator2 = $this->mock();
         $generator3 = $this->mock();
-        
+
         $selector->add($generator);
         $selector->add($generator2);
         $selector->add($generator3);
@@ -89,7 +89,7 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
         $generator = $this->mock();
         $generator2 = $this->mock();
         $generator3 = $this->mock();
-        
+
         $selector->add($generator);
         $selector->add($generator2);
         $selector->add($generator3);
@@ -123,7 +123,7 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
         $generator = $this->mock();
         $generator2 = $this->mock();
         $generator3 = $this->mock();
-        
+
         $selector->add($generator);
         $selector->add($generator2);
         $selector->add($generator3);
@@ -153,7 +153,7 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
     {
         $selector = $this->newGenerator();
         $generator = $this->mock();
-        
+
         $selector->add($generator);
         $generator->shouldReceive('isSupported')
                   ->andReturn(false);
@@ -176,15 +176,15 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
     {
         $selector = $this->newGenerator();
         $generator = $this->mock();
-        
+
         $selector->add($generator);
-        
+
         $generator->shouldReceive('isSupported')
                   ->andReturn(true);
         $generator->shouldReceive('getStrength')
                   ->twice()
                   ->andReturn(5);
-        
+
         $this->assertEquals(5, $selector->getStrength());
 
     }
@@ -194,9 +194,9 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
         $selector = $this->newGenerator();
         $generator = $this->mock();
         $params = [48,false];
-        
+
         $selector->add($generator);
-        
+
         $generator->shouldReceive('isSupported')
                   ->andReturn(true);
         $generator->shouldReceive('getStrength')
@@ -211,6 +211,33 @@ class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
             'test',
             $selector->generate($params[0],$params[1])
         );
+
+    }
+
+    public function testIsSupportedReturnsTrueIfGeneratorFound()
+    {
+
+        $selector = $this->newGenerator();
+        $generator = $this->mock();
+
+        $selector->add($generator);
+
+        $generator->shouldReceive('isSupported')
+                  ->andReturn(true);
+        $generator->shouldReceive('getStrength')
+                  ->once()
+                  ->andReturn(5);
+
+        $this->assertTrue($selector->isSupported());
+
+    }
+
+    public function testIsSupportedReturnsFalseIfNoGeneratorFound()
+    {
+
+        $selector = $this->newGenerator();
+
+        $this->assertFalse($selector->isSupported());
 
     }
 
