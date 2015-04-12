@@ -73,6 +73,30 @@ class EloquentJsonPermissionsTraitTest extends PHPUnit_Framework_TestCase
 
     }
 
+    public function testGetPermissionsAttributeReturnsArrayIfArrayPassed()
+    {
+
+        $user = $this->newUser();
+        $permissions = ['cms.access' => HolderInterface::DENIED];
+
+        $this->assertEquals(
+            $permissions,
+            $user->getPermissionsAttribute($permissions)
+        );
+
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     **/
+    public function testGetPermissionsAttributeWithInvalidJsonThrowsException()
+    {
+        $user = $this->newUser();
+        $permissions = ']invalidJSON[';
+
+        $user->getPermissionsAttribute($permissions);
+    }
+
     public function testSetInheritedPermissionRemovesPermission()
     {
 
@@ -115,6 +139,33 @@ class EloquentJsonPermissionsTraitTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(json_decode($jsonified,true), $result);
 
+    }
+
+    /**
+     * @expectedException UnexpectedValueException
+     **/
+    public function testSetPermissionsAttributeWithInvalidAccessThrowsException()
+    {
+
+        $user = $this->newUser();
+
+        $code1 = 'cms.access';
+        $code2 = 'users.activate';
+        $code3 = 'newsletter.send';
+
+        $user->setPermissionAccess($code1, HolderInterface::GRANTED);
+        $user->setPermissionAccess($code2, 300);
+        $user->setPermissionAccess($code3, HolderInterface::GRANTED);
+
+        $jsonified = $user->getAttributeFromArray('permissions');
+
+        $result = [];
+
+        foreach ($user->permissionCodes() as $code){
+            $result[$code] = $user->getPermissionAccess($code);
+        }
+
+        $this->assertEquals(json_decode($jsonified,true), $result);
 
     }
 

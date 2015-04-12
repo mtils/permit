@@ -67,11 +67,7 @@ trait EloquentJsonPermissionsTrait{
             return $permissions;
         }
 
-        if (!$permissionArray = json_decode($permissions, true)) {
-            throw new InvalidArgumentException("Cannot JSON decode permissions [$permissions].");
-        }
-
-        return $permissionArray;
+        return $this->decodePermissions($permissions);
     }
 
     /**
@@ -96,7 +92,7 @@ trait EloquentJsonPermissionsTrait{
         }
 
         $this->attributes['permissions'] = 
-            count($permissions) ? json_encode($permissions) : '';
+            count($permissions) ? $this->encodePermissions($permissions) : '';
     }
 
     /**
@@ -115,6 +111,22 @@ trait EloquentJsonPermissionsTrait{
         if(!in_array($accessValue, $allowedValues)){
             throw new UnexpectedValueException("$accessValue is not a valid access key");
         }
+    }
+
+    protected function encodePermissions($permissions)
+    {
+        return json_encode($permissions);
+    }
+
+    protected function decodePermissions($permissions)
+    {
+
+        if (!$permissionArray = json_decode($permissions, true)) {
+            throw new InvalidArgumentException("Cannot JSON decode permissions [$permissions].");
+        }
+
+        return $permissionArray;
+
     }
 
 }
