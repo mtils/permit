@@ -137,7 +137,8 @@ class EloquentHolderTraitTest extends PHPUnit_Framework_TestCase{
 
     }
 
-    public function testDetachGroupDoesNothingIfGroupNotAttached(){
+    public function testDetachGroupDoesNothingIfGroupNotAttached()
+    {
 
         $user = $this->newUser();
 
@@ -152,6 +153,26 @@ class EloquentHolderTraitTest extends PHPUnit_Framework_TestCase{
             ->with($moderatorGroup)
             ->never();
         $user->detachGroup($moderatorGroup);
+
+    }
+
+    public function testGetSubHoldersReturnsGroups()
+    {
+
+        $user = $this->newUser();
+
+        $moderatorGroup = $this->newGroup(1);
+        $publisherGroup = $this->newGroup(2);
+        $testerGroup = $this->newGroup(3);
+        $groups = [
+            $moderatorGroup,
+            $publisherGroup,
+            $testerGroup
+        ];
+
+        $user->belongsToMany()->shouldReceive('getResults')->andReturn($groups);
+
+        $this->assertEquals($groups, $user->getSubHolders());
 
     }
 
