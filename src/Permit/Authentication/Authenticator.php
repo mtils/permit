@@ -8,8 +8,7 @@ use Permit\Authentication\Exception\CredentialsInvalidException;
 use Permit\CurrentUser\ContainerInterface;
 use Permit\CurrentUser\CanRememberUser;
 use Permit\User\UserInterface;
-use Permit\Event\BusHolderTrait;
-
+use Signal\NamedEvent\BusHolderTrait;
 
 class Authenticator implements AuthenticatorInterface
 {
@@ -45,11 +44,6 @@ class Authenticator implements AuthenticatorInterface
      **/
     protected $userContainer;
 
-    /**
-     * @var \Permit\Event\BusInterface
-     **/
-    protected $eventBus;
-
     public function __construct(UserProviderInterface $userProvider,
                                 CredentialsValidatorInterface $validator,
                                 ContainerInterface $container)
@@ -65,7 +59,7 @@ class Authenticator implements AuthenticatorInterface
      * @param array $credentials The (request) params (login/password, whatever)
      * @param $remember Create a remember token
      * @return \Permit\User\UserInterface;
-     * @throws \Permit\Authentication\Exception\CredentialsNotFoundException
+     * @throws \Permit\Authentication\Exception\LoginException
      **/
     public function authenticate(array $credentials, $remember=true)
     {
@@ -164,7 +158,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenAttempting($callable)
     {
-        $this->getEventBus()->listen($this->preAttemptEvent, $callable);
+        $this->listen($this->preAttemptEvent, $callable);
     }
 
     /**
@@ -183,7 +177,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenCredentialsNotFound($callable)
     {
-        $this->getEventBus()->listen($this->credentialsNotFoundEvent, $callable);
+        $this->listen($this->credentialsNotFoundEvent, $callable);
     }
 
     /**
@@ -206,7 +200,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenCredentialsInvalid($callable)
     {
-        $this->getEventBus()->listen($this->credentialsInvalidEvent, $callable);
+        $this->listen($this->credentialsInvalidEvent, $callable);
     }
 
     /**
@@ -227,7 +221,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenAttempted($callable)
     {
-        $this->getEventBus()->listen($this->postAttemptEvent, $callable);
+        $this->listen($this->postAttemptEvent, $callable);
     }
 
     /**
@@ -246,7 +240,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenLoggedIn($callable)
     {
-        $this->getEventBus()->listen($this->loggedInEvent, $callable);
+        $this->listen($this->loggedInEvent, $callable);
     }
 
     /**
@@ -265,12 +259,27 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenLoggingOut($callable)
     {
-        $this->getEventBus()->listen($this->preLogoutEvent, $callable);
+        $this->listen($this->preLogoutEvent, $callable);
     }
 
+    /**
+     * Get informed if a user was logged out
+     *
+     * Params passed to the callable:
+     * (UserInterface $user)
+     *
+     * What you could do here:
+     * - Clean up any session based stuff
+     * - statistics
+     * - write last_login col or login history
+     * - ...
+     *
+     * @param callable $callable
+     * @return void
+     **/
     public function whenLoggedOut($callable)
     {
-        $this->getEventBus()->listen($this->postLogoutEvent, $callable);
+        $this->listen($this->postLogoutEvent, $callable);
     }
 
 }

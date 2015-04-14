@@ -26,7 +26,7 @@ class LoginException extends RuntimeException
      **/
     public function __construct($msg='', $reason='', $code=0)
     {
-        public function __construct($msg, $code);
+        parent::__construct($msg, $code);
         $this->reason = $reason;
     }
 
