@@ -480,6 +480,69 @@ class UserModelDriverTest extends PHPUnit_Framework_TestCase{
 
     }
 
+    public function testInvokeCallsIsActivated()
+    {
+
+        $driver = $this->newDriver();
+        $user = m::mock('ActivatableUser');
+        $user->exists = true;
+        $activationCodeColumn = 'cryptic_act_col';
+        $isActivatedColumn = 'cryptic_is_act';
+        $activationDateColumn = '';
+
+        $originalActivationDateColumn = $driver->activationDateColumn;
+        $originalIsActivatedColumn = $driver->isActivatedColumn;
+
+        $driver->activationCodeColumn = $activationCodeColumn;
+        $driver->activationDateColumn = $activationDateColumn;
+        $driver->isActivatedColumn = $isActivatedColumn;
+
+        $user->shouldReceive('getAttribute')
+             ->with($isActivatedColumn)
+             ->andReturn(1)
+             ->once();
+
+        $user->shouldReceive('getAttribute')
+             ->with($originalActivationDateColumn)
+             ->never();
+
+        $user->shouldReceive('getAttribute')
+             ->with($activationCodeColumn)
+             ->never();
+
+        $this->assertNull($driver($user,[],false));
+
+    }
+
+    /**
+     * @expectedException \Permit\Registration\Activation\UserNotActivatedException
+     **/
+    public function testInvokeThrowsExceptionIfUserNotActivated()
+    {
+
+        $driver = $this->newDriver();
+        $user = m::mock('ActivatableUser');
+        $user->exists = true;
+        $activationCodeColumn = 'cryptic_act_col';
+        $isActivatedColumn = 'cryptic_is_act';
+        $activationDateColumn = '';
+
+        $originalActivationDateColumn = $driver->activationDateColumn;
+        $originalIsActivatedColumn = $driver->isActivatedColumn;
+
+        $driver->activationCodeColumn = $activationCodeColumn;
+        $driver->activationDateColumn = $activationDateColumn;
+        $driver->isActivatedColumn = $isActivatedColumn;
+
+        $user->shouldReceive('getAttribute')
+             ->with($isActivatedColumn)
+             ->andReturn(0)
+             ->once();
+
+        $this->assertNull($driver($user,[],false));
+
+    }
+
     public function newDriver($userModel=null,$generator=null)
     {
         $userModel = $userModel ?: $this->newUserModel();

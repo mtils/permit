@@ -2,7 +2,8 @@
 
 use Permit\User\UserInterface;
 
-interface CredentialsValidatorInterface{
+interface CredentialsValidatorInterface
+{
 
     /**
      * Check if credentials matches user

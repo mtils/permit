@@ -11,6 +11,7 @@ use Permit\Random\GeneratorInterface;
 use Permit\User\UserInterface;
 use Permit\Registration\Activation\ActivationDataInvalidException;
 use Permit\User\UserNotFoundException;
+use Permit\Registration\Activation\UserNotActivatedException;
 
 /**
  * This driver uses a column directly in the user table. I defenetly not
@@ -239,6 +240,36 @@ class UserModelDriver implements DriverInterface
     {
         return $this->activationKeyLength ? $this->activationKeyLength :
             GeneratorInterface::DEFAULT_KEYLENGTH;
+    }
+
+    /**
+     * Checks if user is activated and throws an LoginException if not.
+     * This method allows (in combination with __invoke) to assign this driver
+     * to the Authenticator via whenAttempted($driver).
+     *
+     * @param \Permit\User\UserInterface $user
+     * @return void
+     * @throws \Permit\Registration\Activation\UserNotActivatedException
+     **/
+    public function checkUserActivation(UserInterface $user)
+    {
+        if (!$this->isActivated($user)) {
+            throw new UserNotActivatedException("User is not activated");
+        }
+    }
+
+    /**
+     * This is a hook for Authenticator::whenAttempted() to check wether the
+     * user is activated
+     *
+     * @param \Permit\User\UserInterface $user
+     * @param array $credentials
+     * @param bool $remember
+     * @return void
+     **/
+    public function __invoke(UserInterface $user, array $credentials, $remember)
+    {
+        $this->checkUserActivation($user);
     }
 
 }
