@@ -17,13 +17,13 @@ class CredentialsValidatorTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testValidateCredentialsReturnFalseIfNoPasswordPassed()
+    public function testValidateCredentialsReturnNullIfNoPasswordPassed()
     {
 
         $validator = $this->newValidator();
         $user = $this->newUser();
 
-        $this->assertFalse($validator->validateCredentials($user, []));
+        $this->assertNull($validator->validateCredentials($user, []));
 
     }
 

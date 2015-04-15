@@ -96,6 +96,22 @@ class Authenticator implements AuthenticatorInterface
             [$user, $credentials, $remember]
         );
 
+        $this->loginUser($user, $remember);
+
+        return $user;
+
+    }
+
+    /**
+     * Logs the user in without the credential checks
+     *
+     * @param \Permit\User\UserInterface $user
+     * @param bool $remember
+     * @return \Permit\User\UserInterface
+     **/
+    public function loginUser(UserInterface $user, $remember=true)
+    {
+
         $this->putIntoContainer($user, $remember);
 
         $this->fireIfNamed($this->loggedInEvent, [$user, $remember]);

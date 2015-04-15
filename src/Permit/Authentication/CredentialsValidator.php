@@ -32,12 +32,12 @@ class CredentialsValidator implements CredentialsValidatorInterface
      *
      * @param \Permit\User\UserInterface $user
      * @param array $credentials
-     * @return bool
+     * @return bool|null
      **/
     public function validateCredentials(UserInterface $user, array $credentials)
     {
         if (!isset($credentials[$this->passwordKey])) {
-            return false;
+            return;
         }
 
         $password = $credentials[$this->passwordKey];
