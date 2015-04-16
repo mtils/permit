@@ -8,48 +8,4 @@ use RuntimeException;
  * banned, whatever)
  *
  **/
-class LoginException extends RuntimeException
-{
-
-    /**
-     * @var string
-     **/
-    protected $reason = '';
-
-    /**
-     * Create a login exception with an optional reason
-     *
-     * @param string $msg
-     * @param string $reason
-     * @param int $code
-     * @see self::getReason()
-     **/
-    public function __construct($msg='', $reason='', $code=0)
-    {
-        parent::__construct($msg, $code);
-        $this->reason = $reason;
-    }
-
-    /**
-     * Return a reason (for banning etc)
-     *
-     * @return string
-     **/
-    public function getReason()
-    {
-        return $this->reason;
-    }
-
-    /**
-     * Set a reason for this exception
-     *
-     * @param string $reason
-     * @return self
-     **/
-    public function setReason($reason)
-    {
-        $this->reason = $reason;
-        return $this;
-    }
-
-} 
+class LoginException extends RuntimeException{}
