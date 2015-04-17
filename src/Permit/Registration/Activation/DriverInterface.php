@@ -48,12 +48,14 @@ interface DriverInterface{
     public function getUserByActivationData(array $activationData);
 
     /**
-     * Activate the user, no matter how or why
+     * Activate the user, no matter how or why. The $save parameter is to
+     * determine that the activation will be saved.
      *
      * @param \Permit\User\UserInterface $user
+     * @param bool $save (default:true)
      * @return bool
      **/
-    public function activate(UserInterface $user);
+    public function activate(UserInterface $user, $save=true);
 
     /**
      * Return if the user is activated

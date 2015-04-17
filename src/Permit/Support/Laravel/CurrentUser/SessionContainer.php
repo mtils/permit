@@ -13,7 +13,7 @@ class SessionContainer implements ContainerInterface{
 
     protected $askedProvider;
 
-    protected $sessionKey = 'permissioncode_user';
+    protected $sessionKey = 'permit_user';
 
     /**
      * @brief The User Provider which loads the actual provider instance

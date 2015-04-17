@@ -209,7 +209,7 @@ class AuthService implements CheckerInterface, DualContainerInterface{
             throw new BadMethodCallException('Call can($user) before access($resource)');
         }
 
-        $result = $this->hasAccess($this->canStore, $resourceOrCode, $context);
+        $result = $this->hasAccess($this->canStore, $resource, $context);
         $this->canStore = NULL;
         return $result;
     }

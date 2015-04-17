@@ -46,7 +46,7 @@ class Registrar implements RegistrarInterface{
      */
     public function register(array $userData, $activate=false){
 
-        $user = $this->userRepo->create($userData);
+        $user = $this->userRepo->create($userData, false);
 
         $this->fire($this->registeredEventName, [$user, $activate]);
 

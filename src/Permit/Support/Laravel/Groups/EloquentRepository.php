@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class EloquentRepository implements GroupRepositoryInterface{
 
+    public $nameProperty='name';
+
     /**
      * The eloquent model (as a prototype)
      **/
@@ -25,6 +27,17 @@ class EloquentRepository implements GroupRepositoryInterface{
     public function findByGroupId($id)
     {
         return $this->groupModel->find($id);
+    }
+
+    /**
+     * Find a group by its name
+     *
+     * @param string $name
+     * @return \Permit\Groups\GroupInterface;
+     **/
+    public function findByName($name)
+    {
+        return $this->groupModel->where($this->nameProperty, $name)->first();
     }
 
     /**

@@ -134,9 +134,10 @@ class UserModelDriver implements DriverInterface
      * {@inheritdoc}
      *
      * @param \Permit\User\UserInterface $user
+     * @param bool $save (default:true)
      * @return bool
      **/
-    public function activate(UserInterface $user)
+    public function activate(UserInterface $user, $save=true)
     {
 
         $this->checkForModelInterface($user);
@@ -150,6 +151,10 @@ class UserModelDriver implements DriverInterface
         }
 
         $user->{$this->activationCodeColumn} = null;
+
+        if (!$save) {
+            return true;
+        }
 
         return $user->save();
 

@@ -65,6 +65,17 @@ class AccessCheckerTest extends PHPUnit_Framework_TestCase
 
     }
 
+    public function testHasAccessReturnsTrueIfSuperUser()
+    {
+
+        $user = $this->newUser();
+        $checker = $this->newChecker();
+        $user->setPermissionAccess('superuser', HolderInterface::GRANTED);
+
+        $this->assertTrue($checker->hasAccess($user, 'test.modify'));
+
+    }
+
     public function testCreateFuzzyCodeReturnsCorrectCode()
     {
         

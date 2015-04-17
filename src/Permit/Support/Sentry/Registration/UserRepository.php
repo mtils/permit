@@ -19,9 +19,10 @@ class UserRepository implements UserRepositoryInterface{
      * @brief Creates a user with attributes $attributes
      *
      * @param array $attributes
+     * @param bool $activate (default: true)
      * @return \Permit\User\UserInterface
      **/
-    public function create(array $attributes){
+    public function create(array $attributes, $activate=true){
         return $this->sentryProvider->create($attributes);
     }
 

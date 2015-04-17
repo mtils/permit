@@ -99,7 +99,7 @@ trait EloquentHolderTrait{
         return property_exists(
             get_called_class(),
             'groupModelClass'
-        ) ? static::$groupModelClass : 'App\User';
+        ) ? static::$groupModelClass : 'App\Group';
 
     }
 

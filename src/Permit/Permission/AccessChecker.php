@@ -12,6 +12,10 @@ use InvalidArgumentException;
 class AccessChecker implements CheckerInterface
 {
 
+    public $superUserPermission = 'superuser';
+
+    protected $permissionCache = [];
+
     /**
      * @brief Returns if user has access to $resource within $context
      *
@@ -51,9 +55,16 @@ class AccessChecker implements CheckerInterface
     public function hasPermissionAccess(HolderInterface $holder, $resourceOrCode, $context=PermissionableInterface::ACCESS)
     {
 
-        if($holder->isSuperUser()){
-            return true;
-        }
+         if ($holder->isSystem())
+         {
+             return true;
+         }
+
+         if ($resourceOrCode != $this->superUserPermission) {
+            if ($this->hasPermissionAccess($holder, $this->superUserPermission)){
+                return true;
+            }
+         }
 
         if($resourceOrCode instanceof PermissionableInterface){
             $codes = $resourceOrCode->requiredPermissionCodes($context);
@@ -89,6 +100,7 @@ class AccessChecker implements CheckerInterface
         }
 
         if(!$holder instanceof NestedHolderInterface){
+            dd('Nicht erkannt');
             return false;
         }
 
@@ -108,8 +120,40 @@ class AccessChecker implements CheckerInterface
             }
 
         }
-        
+
         return $subHoldersGranted;
+
+    }
+
+    protected function checkForHolderAccess(HolderInterface $holder, array $codes)
+    {
+
+        $cacheId = $this->getCacheId($holder, $codes);
+
+        if (isset($this->cache[$cacheId])) {
+            return $this->cache[$cacheId];
+        }
+
+        $granted = false;
+
+        foreach($codes as $code){
+
+            $access = $this->getPermissionCodeAccess($holder, $code);
+
+            if($access == HolderInterface::GRANTED){
+                $granted = true;
+            }
+
+            if($access == HolderInterface::DENIED){
+                $granted = false;
+                break;
+            }
+
+        }
+
+        $this->cache[$cacheId] = $granted;
+
+        return $granted;
 
     }
 
@@ -123,7 +167,7 @@ class AccessChecker implements CheckerInterface
      **/
     public function getPermissionCodeAccess(HolderInterface $holder, $code)
     {
-        
+
         $holderAccess = $holder->getPermissionAccess($code);
 
         if($holderAccess === HolderInterface::DENIED ||
@@ -134,7 +178,7 @@ class AccessChecker implements CheckerInterface
         }
 
         if($fuzzyCode = $this->getFuzzyCode($code)){
-            return $holder->getPermissionAccess($fuzzyCode);    
+            return $holder->getPermissionAccess($fuzzyCode);
         }
 
         return HolderInterface::INHERITED;
@@ -159,7 +203,7 @@ class AccessChecker implements CheckerInterface
         foreach($subHolders as $subHolder){
 
             $access = $this->getPermissionCodeAccess($subHolder, $code);
-            
+
             if($access === HolderInterface::DENIED){
                 return $access;
             }
@@ -192,6 +236,15 @@ class AccessChecker implements CheckerInterface
         }
 
         return '';
+    }
+
+    protected function getCacheId($groupOrUser, array $codes)
+    {
+        if($groupOrUser instanceof UserInterface)
+        {
+            return "group|".$groupOrUser->getAuthId()."|".implode('|',$codes);
+        }
+        return "user-".$groupOrUser->getGroupId()."|".implode('|',$codes);
     }
 
 }

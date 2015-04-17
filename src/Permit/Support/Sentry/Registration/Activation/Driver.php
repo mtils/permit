@@ -88,14 +88,21 @@ class Driver implements DriverInterface{
      * Activate the user, no matter how or why
      *
      * @param \Permit\User\UserInterface $user
+     * @param bool $save (default:true)
      * @return bool
      **/
-    public function activate(UserInterface $user){
+    public function activate(UserInterface $user, $save=true){
 
         $this->checkForSentryInterface($user);
 
-        try{
+        if (!$save) {
+            $user->activation_code = null;
+            $user->activated       = true;
+            $user->activated_at    = $this->freshTimestamp();
+            return true;
+        }
 
+        try{
             return $user->attemptActivation($user->getActivationCode());
 
         }

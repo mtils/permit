@@ -13,9 +13,6 @@ use Permit\CurrentUser\FallbackContainer;
 use Permit\CurrentUser\LoginValidator;
 use Permit\Support\Laravel\CurrentUser\GuardContainer;
 use Permit\Support\Laravel\CurrentUser\SessionContainer;
-use Permit\Support\Sentry\User\Provider as UserProvider;
-use Permit\Support\Sentry\Registration\UserRepository;
-use Permit\Support\Sentry\Registration\Activation\Driver;
 use Permit\Support\Laravel\User\UserProviderRepository;
 use Permit\Authentication\Authenticator;
 use Permit\Authentication\CredentialsValidator;
@@ -55,9 +52,15 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
         $this->registerPermissionChecker();
 
-        $this->registerLoginValidator();
+        $this->registerHasher();
 
         $this->registerUserProvider();
+
+        $this->registerLoginValidator();
+
+        $this->registerGroupRepository();
+
+        $this->registerUserRepository();
 
     }
 
@@ -95,12 +98,17 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     }
 
-    protected function getIlluminateGuard()
+    protected function getAuthManager()
     {
         if(!$this->authManager){
             $this->authManager = new AuthManager($this->app);
         }
-        return $this->authManager->driver();
+        return $this->authManager;
+    }
+
+    protected function getIlluminateGuard()
+    {
+        return $this->getAuthManager()->driver();
     }
 
     protected function registerCurrentUserContainer(){
@@ -138,12 +146,19 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     protected function registerUserProvider()
     {
+
         $this->app->singleton('Permit\Authentication\UserProviderInterface', function($app){
-            return new UserProviderRepository(
+
+            $repo = new UserProviderRepository(
                 $this->getIlluminateGuard()->getProvider()
             );
 
+            $app->instance('Permit\User\ProviderInterface', $repo);
+
+            return $repo;
+
         });
+
     }
 
     protected function registerThrottleRepository()
@@ -245,7 +260,6 @@ class SentryLegacyServiceProvider extends ServiceProvider{
     protected function createAuthenticator()
     {
 
-        $this->registerHasher();
         $this->registerCredentialsValidator();
 
         $authenticator = new Authenticator(
@@ -294,7 +308,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     protected function registerHasher()
     {
-        $this->app->singleton('Permit\Hasher\HasherInterface', function($app){
+        $this->app->singleton('Permit\Hashing\HasherInterface', function($app){
             return new NativeHasher;
 
         });
@@ -315,15 +329,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
     protected function registerCredentialsValidator()
     {
         $this->app->singleton('Permit\Authentication\CredentialsValidatorInterface', function($app){
-            return new CredentialsValidator($app['Permit\Hasher\HasherInterface']);
-
-        });
-    }
-
-    protected function registerAuthUserProvider()
-    {
-        $this->app->singleton('Permit\Registration\UserRepositoryInterface', function($app){
-            return new UserRepository($app['sentry.user']);
+            return new CredentialsValidator($app['Permit\Hashing\HasherInterface']);
 
         });
     }
@@ -334,8 +340,6 @@ class SentryLegacyServiceProvider extends ServiceProvider{
         $this->registerAccessAssigner();
 
         if($this->useRegistrar){
-
-            $this->registerUserRepository();
             $this->registerActivationDriver();
             $this->registerRegistrarObject();
         }
@@ -345,7 +349,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
     protected function registerUserRepository(){
 
         $this->app->singleton('Permit\Registration\UserRepositoryInterface', function($app){
-            return new UserRepository($app['sentry.user']);
+            return $app->make('Permit\Authentication\UserProviderInterface');
 
         });
 
@@ -389,7 +393,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     protected function createStackedContainer(){
 
-        $userProvider = new UserProvider($this->app['sentry.user']);
+        $userProvider = $this->app->make('Permit\Authentication\UserProviderInterface');
 
         $stackedContainer = new SessionContainer($this->app['session.store'],
                                                  $userProvider,
@@ -423,12 +427,25 @@ class SentryLegacyServiceProvider extends ServiceProvider{
                 $service->setRegistrar($app->make('Permit\Registration\RegistrarInterface'));
             }
 
-            $service->addFallBack($app['sentry']);
+            $service->addFallback($this->getAuthManager());
 
             return $service;
 
         });
 
+    }
+
+    protected function registerGroupRepository()
+    {
+        $interface = 'Permit\Groups\GroupRepositoryInterface';
+        $this->app->singleton($interface, function($app){
+
+            $userProvider = $app['Permit\Authentication\UserProviderInterface'];
+            $groupModel = $userProvider->newUser()->getGroupModelClass();
+
+            $class = 'Permit\Support\Laravel\Groups\EloquentRepository';
+            return $app->make($class, [$app->make($groupModel)]);
+        });
     }
 
     /**

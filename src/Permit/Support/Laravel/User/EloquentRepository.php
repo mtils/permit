@@ -37,9 +37,10 @@ class EloquentRepository implements UserRepositoryInterface, ProviderInterface
      * {@inheritdoc}
      *
      * @param array $attributes
+     * @param bool $activate (default: true)
      * @return \Permit\User\UserInterface
      **/
-    public function create(array $attributes)
+    public function create(array $attributes, $activate=true)
     {
         return $this->userModel->create($attributes);
     }
