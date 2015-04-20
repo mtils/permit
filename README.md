@@ -13,11 +13,11 @@ The main features and goals are:
 * Splits authentication and simple getUser()/setUser functionality
 * Works with almost every other authentication system (Laravel, Sentry,...)
 
-It works almost like Sentry and currently it depends on Sentry because I didnt implement the actual permission code save methods and group support.
-
-Why not Sentry instead of Permit?
+It works almost like Sentry, so why not Sentry instead of Permit?
 
 * Sentry bybasses almost all auth functionalities of Laravel
+* It sticks a lot of logic into the value objects (like user or group)
+* Fat interfaces and therefore little chances to extend/modify it
 * Never use a Facade which is named by a package ;-)
 
 The Facade API (which is mostly used in views):
