@@ -17,6 +17,7 @@ interface UserRepositoryInterface{
      * @brief Saves the user
      *
      * @param \Permit\User\UserInterface $user
+     * @return bool
      **/
     public function save(UserInterface $user);
 }

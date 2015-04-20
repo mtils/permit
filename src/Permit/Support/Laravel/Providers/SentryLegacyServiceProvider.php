@@ -249,6 +249,8 @@ class SentryLegacyServiceProvider extends ServiceProvider{
     protected function registerAuthenticator()
     {
 
+        $this->registerCredentialsValidator();
+
         $interface = 'Permit\Authentication\AuthenticatorInterface';
 
         $this->app->singleton($interface, function($app){
@@ -259,8 +261,6 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     protected function createAuthenticator()
     {
-
-        $this->registerCredentialsValidator();
 
         $authenticator = new Authenticator(
             $this->app['Permit\Authentication\UserProviderInterface'],
