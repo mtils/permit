@@ -62,6 +62,11 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
         $this->registerUserRepository();
 
+        $this->app->singleton('auth.driver', function($app)
+        {
+            return $app['auth']->driver();
+        });
+
     }
 
     public function boot(){

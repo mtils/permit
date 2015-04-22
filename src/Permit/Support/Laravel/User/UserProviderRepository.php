@@ -2,8 +2,7 @@
 
 use RuntimeException;
 
-use Illuminate\Auth\UserProviderInterface as IlluminateProvider;
-use Illuminate\Auth\EloquentUserProvider;
+use Illuminate\Contracts\Auth\UserProvider as IlluminateProvider;
 use Illuminate\Auth\GenericUser;
 
 use Permit\User\UserInterface;
