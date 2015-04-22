@@ -109,7 +109,7 @@ class GuardContainerTest extends PHPUnit_Framework_TestCase
     {
         return m::mock(
             'Permit\User\UserInterface',
-            'Illuminate\Auth\UserInterface'
+            'Illuminate\Contracts\Auth\Authenticatable'
         );
 
     }

@@ -6,11 +6,11 @@ use Permit\Support\Laravel\User\UserProviderRepository;
 use Permit\Registration\Activation\DriverInterface;
 use Permit\Hashing\HasherInterface;
 
-use Illuminate\Auth\UserProviderInterface;
+use Illuminate\Contracts\Auth\UserProvider;
 
 class UserProviderRepositoryTest extends PHPUnit_Framework_TestCase{
 
-    protected $interface = 'Illuminate\Auth\UserProviderInterface';
+    protected $interface = 'Illuminate\Contracts\Auth\UserProvider';
 
     public function testImplementsInterface()
     {
@@ -38,7 +38,7 @@ class UserProviderRepositoryTest extends PHPUnit_Framework_TestCase{
         $this->assertEquals('return', $repo->findByCredentials($credentials));
     }
 
-    protected function newRepository(UserProviderInterface $provider=null,
+    protected function newRepository(UserProvider $provider=null,
                                      HasherInterface $hasher=null,
                                      DriverInterface $driver=null)
     {

@@ -3,7 +3,7 @@
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Authenticatable as UserTrait;
 use Illuminate\Auth\UserInterface;
-use Illuminate\Contracts\Auth\Authenticatable
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\CanResetPassword as ResetPasswordInterface;
 use Illuminate\Auth\Passwords\CanResetPassword;
 

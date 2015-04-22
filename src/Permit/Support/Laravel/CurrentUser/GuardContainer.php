@@ -32,7 +32,7 @@ class GuardContainer implements ContainerInterface, CanRememberUser
 
     /**
      * @brief Set the current user. If a user should be logged in as a
-     *        different user you shoul simply set a user a second time
+     *        different user you should simply set a user a second time
      *
      * @param \Permit\User\UserInterface $user
      * @param bool $persist Persists the user (in session)
