@@ -3,7 +3,7 @@
 use Permit\User\UserInterface;
 
 /**
- * Use this trait in your throttler to allow checks on login
+ * Hook this class into login hools to allow throttle checks on login
  **/
 class ChecksThrottleOnLogin
 {

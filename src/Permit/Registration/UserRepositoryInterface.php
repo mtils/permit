@@ -1,8 +1,10 @@
 <?php namespace Permit\Registration;
 
 use Permit\User\UserInterface;
+use Permit\User\ProviderInterface;
 
-interface UserRepositoryInterface{
+interface UserRepositoryInterface extends ProviderInterface
+{
 
     /**
      * @brief Creates a user with attributes $attributes
@@ -19,5 +21,6 @@ interface UserRepositoryInterface{
      * @param \Permit\User\UserInterface $user
      * @return bool
      **/
-    public function save(UserInterface $user);
+    public function save(ActivatableInterface $user);
+
 }

@@ -1,4 +1,4 @@
-<?php namespace Permit\Registration\Activation;
+<?php namespace Permit\Registration;
 
 use Permit\Authentication\Exception\LoginException;
 

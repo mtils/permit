@@ -1,16 +1,27 @@
 <?php namespace Permit\Registration;
 
-use Permit\User\UserInterface;
-use Permit\Registration\Activation\DriverInterface;
-use Permit\Access\AssignerInterface;
+
 use InvalidArgumentException;
+
+use Signal\NamedEvent\BusHolderTrait;
+
+use Permit\User\UserInterface;
+use Permit\Token\RepositoryInterface as TokenRepository;
+use Permit\Access\AssignerInterface;
+use Permit\Registration\ActivatableInterface as ActivatableUser;
+
+
 
 /**
  * @brief The registrar registers, activates and deactivates users
  **/
 class Registrar implements RegistrarInterface{
 
+    use BusHolderTrait;
+
     public $registeredEventName  = 'auth.registered';
+
+    public $activatingEventName   = 'auth.activating';
 
     public $activatedEventName   = 'auth.activated';
 
@@ -20,18 +31,18 @@ class Registrar implements RegistrarInterface{
 
     protected $userRepo;
 
-    protected $activationDriver;
+    protected $tokenRepo;
 
     protected $accessAssigner;
 
     protected $eventDispatcher;
 
     public function __construct(UserRepositoryInterface $userRepo,
-                                DriverInterface $activationDriver,
+                                TokenRepository $tokenRepo,
                                 AssignerInterface $accessAssigner){
 
         $this->userRepo = $userRepo;
-        $this->activationDriver = $activationDriver;
+        $this->tokenRepo = $tokenRepo;
         $this->accessAssigner = $accessAssigner;
 
     }
@@ -42,19 +53,19 @@ class Registrar implements RegistrarInterface{
      *
      * @param  array  $userData
      * @param  bool   $activate (default:false)
-     * @return \Permit\User\UserInterface
+     * @return \Permit\Registration\ActivatableInterface
      */
     public function register(array $userData, $activate=false){
 
         $user = $this->userRepo->create($userData, false);
 
-        $this->fire($this->registeredEventName, [$user, $activate]);
+        $this->fireIfNamed($this->registeredEventName, [$user, $activate]);
 
         if(!$activate){
 
-            $this->activationDriver->reserveActivation($user);
+            $token = $this->tokenRepo->create($user, TokenRepository::ACTIVATION);
 
-            $this->fire($this->activationReservedEventName, [$user]);
+            $this->fireIfNamed($this->activationReservedEventName, [$user, $token]);
 
         }
         else{
@@ -68,13 +79,24 @@ class Registrar implements RegistrarInterface{
      * Try to activate an user by activationParams like a code or many
      *
      * @param array $activationData
-     * @return \Permit\User\UserInterface
+     * @return \Permit\Registration\ActivatableInterface
      **/
     public function attemptActivation(array $activationData){
 
-        $user = $this->activationDriver->getUserByActivationData($activationData);
+        $authId = $this->tokenRepo->getAuthIdByToken(
+            $activationData['code'],
+            TokenRepository::ACTIVATION
+        );
+
+        $user = $this->userRepo->retrieveByAuthId($authId);
 
         $this->activate($user);
+
+        $this->tokenRepo->invalidate(
+            $user,
+            TokenRepository::ACTIVATION,
+            $activationData['code']
+        );
 
         return $user;
     }
@@ -82,28 +104,30 @@ class Registrar implements RegistrarInterface{
     /**
      * Activates the user.
      *
-     * @param \Permit\User\UserInterface $user
-     * @return \Permit\User\UserInterface The activated user with groups assigned (or not)
+     * @param \Permit\Registration\ActivatableInterface $user
+     * @return \Permit\Registration\ActivatableInterface The activated user with groups assigned (or not)
      **/
-    public function activate(UserInterface $user){
+    public function activate(ActivatableUser $user){
 
         // Check for domain exceptions
 
         $this->checkForActivation($user);
 
-        $this->activationDriver->activate($user);
+        $this->fireIfNamed($this->activatingEventName, [$user]);
 
-        if(!$this->activationDriver->isActivated($user)){
+        $user->markAsActivated();
 
+        $user->save();
+
+        if (!$user->isActivated()) {
             throw new ActivationFailedException('Activation has failed');
-
         }
 
-        $this->fire($this->activatedEventName, [$user]);
+        $this->fireIfNamed($this->activatedEventName, [$user]);
 
         $this->accessAssigner->assignAccessRights($user);
 
-        $this->fire($this->assignedRightsEventName, [$user]);
+        $this->fireIfNamed($this->assignedRightsEventName, [$user]);
 
 
         return $user;
@@ -112,11 +136,11 @@ class Registrar implements RegistrarInterface{
     /**
      * Returns if user $user is activated
      *
-     * @param Permit\User\UserInterface $user
+     * @param \Permit\Registration\ActivatableInterface $user
      * @return bool
      **/
-    public function isActivated(UserInterface $user){
-        return $this->activationDriver->isActivated($user);
+    public function isActivated(ActivatableUser $user){
+        return $user->isActivated($user);
     }
 
     /**
@@ -124,38 +148,18 @@ class Registrar implements RegistrarInterface{
      *
      * @throws \Permit\Registration\UserAlreadyActivatedException If the user is already activated
      * @throws \Permit\Registration\UnactivatebleUserException If this user cant be activated
-     * @param \Permit\User\UserInterface
+     * @param \Permit\Registration\ActivatableInterface $user
      * @return void
      **/
-    protected function checkForActivation(UserInterface $user){
+    protected function checkForActivation(ActivatableUser $user){
 
         if($user->isGuest() || $user->isSystem()){
-
             throw new UnactivatebleUserException('A special user cant by activated');
-
         }
 
-        if($this->activationDriver->isActivated($user)){
-
+        if($user->isActivated()){
             throw new UserAlreadyActivatedException('This user is already activated');
-
         }
-    }
-
-    /**
-     * @brief Fires an event in different steps of the registration/activation
-     *        process
-     *
-     * @param string $eventName The name of the event
-     * @param array $params The parameters
-     * @return void
-     **/
-    protected function fire($eventName, array $params){
-
-        if($this->eventDispatcher){
-            $this->eventDispatcher->fire($eventName, $params);
-        }
-
     }
 
     public function getUserRepository(){
@@ -167,15 +171,6 @@ class Registrar implements RegistrarInterface{
         return $this;
     }
 
-    public function getActivationDriver(){
-        return $this->activationDriver;
-    }
-
-    public function setActivationDriver(DriverInterface $driver){
-        $this->activationDriver = $driver;
-        return $this;
-    }
-
     public function getAccessAssigner(){
         return $this->accessAssigner;
     }
@@ -183,22 +178,6 @@ class Registrar implements RegistrarInterface{
     public function setAccessAssigner(AssignerInterface $assigner){
         $this->accessAssigner = $assigner;
         return $this;
-    }
-
-    public function getEventDispatcher(){
-        return $this->eventDispatcher;
-    }
-
-    public function setEventDispatcher($dispatcher){
-
-        if(!is_object($dispatcher) || !method_exists($dispatcher,'fire')){
-            throw new InvalidArgumentException('EventDispatcher has to have a fire() method');
-        }
-
-        $this->eventDispatcher = $dispatcher;
-
-        return $this;
-
     }
 
 }

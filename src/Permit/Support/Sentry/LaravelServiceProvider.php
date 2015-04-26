@@ -11,7 +11,6 @@ use Permit\Support\Sentry\CurrentUser\Container;
 use Permit\Support\Laravel\CurrentUser\SessionContainer;
 use Permit\Support\Sentry\User\Provider as UserProvider;
 use Permit\Support\Sentry\Registration\UserRepository;
-use Permit\Support\Sentry\Registration\Activation\Driver;
 use Permit\Access\FakeAssigner;
 use Permit\Registration\Registrar;
 use Permit\AuthService;
@@ -97,7 +96,6 @@ class LaravelServiceProvider extends ServiceProvider{
         if($this->useRegistrar){
 
             $this->registerUserRepository();
-            $this->registerActivationDriver();
             $this->registerAccessAssigner();
             $this->registerRegistrarObject();
         }
@@ -108,16 +106,6 @@ class LaravelServiceProvider extends ServiceProvider{
 
         $this->app->singleton('Permit\Registration\UserRepositoryInterface', function($app){
             return new UserRepository($app['sentry.user']);
-
-        });
-
-    }
-
-    protected function registerActivationDriver(){
-
-        $this->app->singleton('Permit\Registration\Activation\DriverInterface', function($app){
-            return $app->make('Permit\Support\Sentry\Registration\Activation\Driver',
-                              [$app['sentry.user']]);
 
         });
 

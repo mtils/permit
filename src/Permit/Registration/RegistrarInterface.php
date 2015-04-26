@@ -5,6 +5,7 @@ use InvalidArgumentException;
 use RuntimeException;
 
 use Permit\User\UserInterface;
+use Permit\Registration\ActivatableInterface as ActivatableUser;
 
 class UserAlreadyActivatedException extends DomainException{}
 class UnactivatebleUserException extends InvalidArgumentException{}
@@ -21,7 +22,7 @@ interface RegistrarInterface{
      *
      * @param  array  $userData
      * @param  bool   $activate (default:false)
-     * @return \Permit\User\UserInterface
+     * @return \Permit\Registration\ActivatableInterface
      */
     public function register(array $userData, $activate=false);
 
@@ -29,7 +30,7 @@ interface RegistrarInterface{
      * Try to activate an user by activationParams like a code or many
      *
      * @param array $activationParams
-     * @return \Permit\User\UserInterface
+     * @return \Permit\Registration\ActivatableInterface
      **/
     public function attemptActivation(array $activationParams);
 
@@ -37,18 +38,18 @@ interface RegistrarInterface{
      * Activates the user.
      *
      *
-     * @param Permit\User\UserInterface $user
+     * @param \Permit\Registration\ActivatableInterface $user
      * @param bool $enforceActivationProcess Force or bybass activation process
      * @return The activated user with groups assigned (or not)
      **/
-    public function activate(UserInterface $user);
+    public function activate(ActivatableUser $user);
 
     /**
      * Returns if user $user is activated
      *
-     * @param Permit\User\UserInterface $user
+     * @param \Permit\Registration\ActivatableInterface $user
      * @return bool
      **/
-    public function isActivated(UserInterface $user);
+    public function isActivated(ActivatableUser $user);
 
 }

@@ -4,11 +4,12 @@
 use Illuminate\Database\Eloquent\Model;
 
 use Permit\Registration\UserRepositoryInterface;
+use Permit\Registration\ActivatableInterface;
 use Permit\User\ProviderInterface;
 use Permit\User\UserInterface;
 
 
-class EloquentRepository implements UserRepositoryInterface, ProviderInterface
+class EloquentRepository implements UserRepositoryInterface
 {
 
     /**
@@ -42,7 +43,14 @@ class EloquentRepository implements UserRepositoryInterface, ProviderInterface
      **/
     public function create(array $attributes, $activate=true)
     {
-        return $this->userModel->create($attributes);
+
+        $user = $this->userModel->newInstance($attributes);
+
+        if ($activate) {
+            $user->markAsActivated();
+        }
+
+        return $user;
     }
 
     /**
@@ -50,7 +58,7 @@ class EloquentRepository implements UserRepositoryInterface, ProviderInterface
      *
      * @param Permit\User\UserInterface $user
      **/
-    public function save(UserInterface $user)
+    public function save(ActivatableInterface $user)
     {
         return $user->save();
     }

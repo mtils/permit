@@ -42,7 +42,7 @@ class EloquentUserRepositoryTest extends PHPUnit_Framework_TestCase
         $resultUser = $this->newUser(16);
         $attributes = ['login'=>'michael88','email'=>'foo@bar.de'];
 
-        $userModel->shouldReceive('create')
+        $userModel->shouldReceive('newInstance')
                   ->with($attributes)
                   ->once()
                   ->andReturn($resultUser);
