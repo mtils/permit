@@ -100,7 +100,6 @@ class AccessChecker implements CheckerInterface
         }
 
         if(!$holder instanceof NestedHolderInterface){
-            dd('Nicht erkannt');
             return false;
         }
 
