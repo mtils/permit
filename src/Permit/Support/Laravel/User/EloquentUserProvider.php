@@ -5,6 +5,8 @@ use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Auth\EloquentUserProvider as IlluminateProvider;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
+use Signal\NamedEvent\BusHolderTrait;
+
 use Permit\User\UserInterface;
 use Permit\Authentication\UserProviderInterface;
 use Permit\Registration\UserRepositoryInterface;
@@ -23,7 +25,17 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
                                                                  UserRepositoryInterface
 {
 
+    use BusHolderTrait;
+
     public $passwortColumn = 'password';
+
+    public $creatingUserEvent = 'auth.user.creating';
+
+    public $createdUserEvent = 'auth.user.created';
+
+    public $updatingUserEvent = 'auth.user.updating';
+
+    public $updatedUserEvent = 'auth.user.updating';
 
     /**
      * @var \Illuminate\Database\Eloquent\Model
@@ -54,9 +66,7 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
         $this->modelInstance = $modelInstance;
         $this->model = get_class($modelInstance);
 
-        $this->permitHasher = $permitHasher;
-        // Proxy the permitHasher for laravel
-        $this->hasher = new PermitHasher($permitHasher);
+        $this->setPermitHasher($permitHasher);
 
         $this->tokenRepository = $tokenRepo;
     }
@@ -107,7 +117,11 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
             $user->markAsActivated();
         }
 
+        $this->fireIfNamed($this->creatingUserEvent, [$user, $activate]);
+
         $user->save();
+
+        $this->fireIfNamed($this->createdUserEvent, [$user, $activate]);
 
         return $user;
     }
@@ -120,10 +134,17 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
     public function save(ActivatableInterface $user){
 
         if ($user->isDirty($this->passwortColumn)) {
-            $user->{$this->passwortColumn} = $this->permitHasher->hash($user->{$this->passwortColumn});
+            $hashedPassword = $this->permitHasher->hash($user->{$this->passwortColumn});
+            $user->{$this->passwortColumn} = $hashedPassword;
         }
 
-        return $user->save();
+        $this->fireIfNamed($this->updatingUserEvent, $user);
+
+        $result = $user->save();
+
+        $this->fireIfNamed($this->updatedUserEvent, $user);
+
+        return $result;
 
     }
 
@@ -173,6 +194,33 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
     public function updateRememberToken(UserContract $user, $token)
     {
         $this->tokenRepository->update($user, TokenRepository::REMEMBER);
+    }
+
+    /**
+     * Return the permit hasher (not the laravel proxy)
+     *
+     * @return \Permit\Hashing\HasherInterface
+     **/
+    public function getPermitHasher()
+    {
+        return $this->permitHasher;
+    }
+
+    /**
+     * Set a new hasher. This is usefull on migrations or jobs for nullHashers
+     *
+     * @param \Permit\Hashing\HasherInterface $hasher
+     * @return self
+     **/
+    public function setPermitHasher(HasherInterface $hasher)
+    {
+
+        $this->permitHasher = $hasher;
+
+        // Proxy the permitHasher for laravel
+        $this->hasher = new PermitHasher($hasher);
+
+        return $this;
     }
 
 
