@@ -19,6 +19,10 @@ class FallbackContainer implements ContainerInterface{
 
     protected $systemDetector;
 
+    protected $systemUserProvider;
+
+    protected $guestUserProvider;
+
     /**
      * @brief Retrieve the current user.
      *
@@ -49,10 +53,8 @@ class FallbackContainer implements ContainerInterface{
 
     public function getGuest(){
 
-        if(!$this->_guestUser){
-            $this->_guestUser = new GenericUser();
-            $this->_guestUser->setAuthId('guest');
-            $this->_guestUser->setIsGuest(true);
+        if (!$this->_guestUser) {
+            $this->_guestUser = $this->createGuestUser();
         }
 
         return $this->_guestUser;
@@ -62,12 +64,48 @@ class FallbackContainer implements ContainerInterface{
     public function getSystem(){
 
         if(!$this->_systemUser){
-            $this->_systemUser = new GenericUser();
-            $this->_systemUser->setAuthId('system');
-            $this->_systemUser->setIsSystem(true);
+            $this->_systemUser = $this->createSystemUser();
         }
 
         return $this->_systemUser;
+
+    }
+
+    public function provideSystem(callable $provider)
+    {
+        $this->systemUserProvider = $provider;
+        return $this;
+    }
+
+    public function provideGuest(callable $provider)
+    {
+        $this->guestUserProvider = $provider;
+        return $this;
+    }
+
+    protected function createSystemUser()
+    {
+        if ($this->systemUserProvider) {
+            return call_user_func($this->systemUserProvider);
+        }
+
+        $systemUser = new GenericUser();
+        $systemUser->setAuthId('system');
+        $systemUser->setIsSystem(true);
+        return $systemUser;
+
+    }
+
+    protected function createGuestUser()
+    {
+        if ($this->guestUserProvider) {
+            return call_user_func($this->guestUserProvider);
+        }
+
+        $guestUser = new GenericUser();
+        $guestUser->setAuthId('guest');
+        $guestUser->setIsGuest(true);
+        return $guestUser;
 
     }
 
