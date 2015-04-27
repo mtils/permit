@@ -462,7 +462,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
         $this->app->singleton($interface, function($app){
 
             $userProvider = $app['Permit\Authentication\UserProviderInterface'];
-            $groupModel = $userProvider->newUser()->getGroupModelClass();
+            $groupModel = $userProvider->createModel()->getGroupModelClass();
 
             $class = 'Permit\Support\Laravel\Groups\EloquentRepository';
             return $app->make($class, [$app->make($groupModel)]);
