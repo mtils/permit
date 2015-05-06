@@ -27,7 +27,7 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
 
     use BusHolderTrait;
 
-    public $passwortColumn = 'password';
+    public $passwordColumn = 'password';
 
     public $creatingUserEvent = 'auth.user.creating';
 
@@ -110,7 +110,7 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
         $user->fill($passwordLessAttributes);
 
         if($password = $this->findPassword($attributes)){
-            $user->{$this->passwortColumn} = $this->permitHasher->hash($password);
+            $user->{$this->passwordColumn} = $this->permitHasher->hash($password);
         }
 
         if ($activate) {
@@ -133,9 +133,9 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
      **/
     public function save(ActivatableInterface $user){
 
-        if ($user->isDirty($this->passwortColumn)) {
-            $hashedPassword = $this->permitHasher->hash($user->{$this->passwortColumn});
-            $user->{$this->passwortColumn} = $hashedPassword;
+        if ($user->isDirty($this->passwordColumn)) {
+            $hashedPassword = $this->permitHasher->hash($user->{$this->passwordColumn});
+            $user->{$this->passwordColumn} = $hashedPassword;
         }
 
         $this->fireIfNamed($this->updatingUserEvent, $user);
@@ -234,8 +234,11 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
     {
         $cleaned = [];
 
+        $passwordKey = $this->passwordColumn;
+        $passwordConfirmation = "{$passwordKey}_confirmation";
+
         foreach ($attributes as $key=>$value) {
-            if ($key != $this->passwortColumn) {
+            if ($key != $passwordKey && $key != $passwordConfirmation) {
                 $cleaned[$key] = $value;
             }
         }
@@ -251,8 +254,8 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
      **/
     protected function findPassword(array $attributes)
     {
-        if (isset($attributes[$this->passwortColumn])) {
-            return $attributes[$this->passwortColumn];
+        if (isset($attributes[$this->passwordColumn])) {
+            return $attributes[$this->passwordColumn];
         }
     }
 
