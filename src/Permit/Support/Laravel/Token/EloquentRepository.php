@@ -75,7 +75,7 @@ class EloquentRepository implements Repository
     public function getAuthIdByToken($token, $type)
     {
 
-        if (!$this->isValid($token)) {
+        if (!$this->isValid($token, $type)) {
             throw new TokenInvalidException("Token $token is invalid");
         }
 
@@ -120,6 +120,8 @@ class EloquentRepository implements Repository
         }
 
         $tokenModel = $this->createModel($attributes);
+
+        $tokenModel->save();
 
         if ($type == self::REMEMBER) {
             $user->setRememberToken($token);
