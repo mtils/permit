@@ -19,18 +19,36 @@ trait PermissionableHolderTrait{
      **/
     public function requiredPermissionCodes($context=PermissionableInterface::ACCESS){
 
-        $requiredCodes = [];
+        $codes = $this->collectAllowedPermissionCodes($this);
 
-        $codes = $this->permissionCodes(true);
-
-        foreach($codes as $code){
-            if($this->getPermissionAccess($code) == 1){
-                $requiredCodes[] = $code;
-            }
+        if ($this instanceof NestedHolderInterface) {
+            $codes = array_merge($this->collectNestedHolderPermissions());
         }
 
-        return $requiredCodes;
+        return $codes;
 
+    }
+
+    protected function collectNestedHolderPermissions()
+    {
+        $nestedPermissions = [];
+
+        foreach ($this->getSubHolders() as $subHolder) {
+            $nestedPermissions = array_merge($this->collectAllowedPermissionCodes($subHolder));
+        }
+
+        return $nestedPermissions;
+    }
+
+    protected function collectAllowedPermissionCodes(HolderInterface $holder)
+    {
+        $codes = [];
+        foreach ($holder->permissionCodes() as $code) {
+            if($holder->getPermissionAccess($code) == 1){
+                $codes[] = $code;
+            }
+        }
+        return $codes;
     }
 
 }
