@@ -278,4 +278,9 @@ class AuthService implements CheckerInterface, DualContainerInterface{
         return !($this->user()->isGuest());
     }
 
+    public function guest()
+    {
+        return !$this->loggedId();
+    }
+
 }
