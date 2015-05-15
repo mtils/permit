@@ -52,27 +52,27 @@ class DualContainer implements DualContainerInterface{
      **/
     public function user(){
 
+        $actualUser = $this->actualContainer->user();
+
+        if (!$actualUser && $this->fallbackContainer) {
+            return $this->fallbackContainer->user();
+        }
+
+        if (!$actualUser) {
+            return;
+        }
+
         // The acutal user is forced
         if($this->_forceActual){
-            if($user = $this->actualContainer->user()){
-                return $user;
-            }
+            return $actualUser;
         }
 
         // If not return the stacked
-        elseif($user = $this->stackedContainer->user()){
+        if($user = $this->stackedContainer->user()){
             return $user;
         }
 
-        // If _forceAction is not true and no stacked found
-        if($user = $this->actualContainer->user()){
-            return $user;
-        }
-
-        // Return fallback if you want to
-        if($this->fallbackContainer){
-            return $this->fallbackContainer->user();
-        }
+        return $actualUser;
 
     }
 
@@ -192,14 +192,12 @@ class DualContainer implements DualContainerInterface{
      **/
     public function reset($type=self::BOTH){
 
+        // Always clear the stacked container
+        $this->stackedContainer->clearUser();
+
         if($type === self::BOTH || $type === self::ACTUAL){
             $this->actualContainer->clearUser();
         }
-
-        if($type === self::BOTH || $type === self::STACKED){
-            $this->stackedContainer->clearUser();
-        }
-
     }
 
     public function getStackedContainer(){
