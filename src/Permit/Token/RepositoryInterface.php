@@ -41,6 +41,14 @@ interface RepositoryInterface{
     const OAUTH = 4;
 
     /**
+     * A one time login token. This can be used as a password reset if you send
+     * the user directly to its password page
+     *
+     * @var int
+     **/
+    const LOGIN = 5;
+
+    /**
      * Returns the token of $type for user $user. If the token does not exist it
      * returns an empty string
      *
