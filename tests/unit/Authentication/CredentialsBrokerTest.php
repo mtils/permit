@@ -3,8 +3,9 @@
 use Mockery as m;
 use Permit\Authentication\CredentialsBroker;
 use Permit\Token\RepositoryInterface as Tokens;
+use Permit\Registration\GenericUser;
 
-class CredentialsBrokerTest extends PHPUnit_Framework_TestCase{
+class CredentialsBrokerTest extends BaseTest{
 
     public function testImplementsInterface()
     {
@@ -176,6 +177,146 @@ class CredentialsBrokerTest extends PHPUnit_Framework_TestCase{
         $this->assertNull($broker->getExpiresAt());
     }
 
+    public function testApplyCredentialsSetsPropertiesBy__set()
+    {
+
+        $users = $this->mockUsers();
+        $tokens = $this->mockTokens();
+        $broker = $this->newBroker(null, $tokens, $users);
+
+        $user = new PropertyOverloadedUser;
+        $token = 'abc';
+
+        $credentials = [
+            'user'      => 'michael',
+            'password'  => '123',
+            '_csrf'     => 'cba',
+            $broker->tokenKey=>$token
+        ];
+
+        $filteredCredentials = [
+            'user'      => 'michael',
+            'password'  => '123'
+        ];
+
+        $authId = 44;
+
+        $tokens->shouldReceive('getAuthIdByToken')
+               ->with($token, Tokens::PASSWORD_RESET)
+               ->andReturn($authId);
+
+        $tokens->shouldReceive('invalidate')
+               ->with($user, Tokens::PASSWORD_RESET, $token)
+               ->once();
+
+        $users->shouldReceive('retrieveByAuthId')
+              ->with($authId)
+              ->andReturn($user);
+
+        $users->shouldReceive('save')
+              ->with($user)
+              ->andReturn(true);
+
+        $broker->reset($credentials);
+
+        $this->assertEquals($filteredCredentials, $user->attributes);
+
+    }
+
+    public function testApplyCredentialsSetsPropertiesByArrayAccess()
+    {
+
+        $users = $this->mockUsers();
+        $tokens = $this->mockTokens();
+        $broker = $this->newBroker(null, $tokens, $users);
+
+        $user = new ArrayAccessableUser;
+        $token = 'abc';
+
+        $credentials = [
+            'user'      => 'michael',
+            'password'  => '123',
+            'password_confirmation' => '123',
+            '_csrf'     => 'cba',
+            $broker->tokenKey=>$token
+        ];
+
+        $filteredCredentials = [
+            'user'      => 'michael',
+            'password'  => '123'
+        ];
+
+        $authId = 44;
+
+        $tokens->shouldReceive('getAuthIdByToken')
+               ->with($token, Tokens::PASSWORD_RESET)
+               ->andReturn($authId);
+
+        $tokens->shouldReceive('invalidate')
+               ->with($user, Tokens::PASSWORD_RESET, $token)
+               ->once();
+
+        $users->shouldReceive('retrieveByAuthId')
+              ->with($authId)
+              ->andReturn($user);
+
+        $users->shouldReceive('save')
+              ->with($user)
+              ->andReturn(true);
+
+        $broker->reset($credentials);
+
+        $this->assertEquals($filteredCredentials, $user->attributes);
+
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     **/
+    public function testApplyCredentialsThrowsExceptionIfCantSetAttributes()
+    {
+
+        $users = $this->mockUsers();
+        $tokens = $this->mockTokens();
+        $broker = $this->newBroker(null, $tokens, $users);
+
+        $user = new GenericUser;
+        $token = 'abc';
+
+        $credentials = [
+            'user'      => 'michael',
+            'password'  => '123',
+            '_csrf'     => 'cba',
+            $broker->tokenKey=>$token
+        ];
+
+        $filteredCredentials = [
+            'user'      => 'michael',
+            'password'  => '123'
+        ];
+
+        $authId = 44;
+
+        $tokens->shouldReceive('getAuthIdByToken')
+               ->with($token, Tokens::PASSWORD_RESET)
+               ->andReturn($authId);
+
+        $tokens->shouldReceive('invalidate')
+               ->with($user, Tokens::PASSWORD_RESET, $token)
+               ->never();
+
+        $users->shouldReceive('retrieveByAuthId')
+              ->with($authId)
+              ->andReturn($user);
+
+        $users->shouldReceive('save')
+              ->with($user)
+              ->never();
+
+        $broker->reset($credentials);
+
+    }
+
     protected function newBroker($userProvider=null, $tokenRepository=null,
                                  $userRepository=null)
     {
@@ -185,24 +326,40 @@ class CredentialsBrokerTest extends PHPUnit_Framework_TestCase{
         return new CredentialsBroker($userProvider, $tokenRepository, $userRepository);
     }
 
-    protected function mockUserProvider()
+}
+
+class PropertyOverloadedUser extends GenericUser
+{
+    public $attributes = [];
+
+    public function __set($var, $value)
     {
-        return m::mock('Permit\Authentication\UserProviderInterface');
+        $this->attributes[$var] = $value;
+    }
+}
+
+
+class ArrayAccessableUser extends GenericUser implements ArrayAccess
+{
+    public $attributes = [];
+
+    public function offsetGet($var)
+    {
+        return $this->attributes[$var];
     }
 
-    protected function mockTokens()
+    public function offsetSet($var, $value)
     {
-        return m::mock('Permit\Token\RepositoryInterface');
+        $this->attributes[$var] = $value;
     }
 
-    protected function mockUsers()
+    public function offsetExists($var)
     {
-        return m::mock('Permit\Registration\UserRepositoryInterface');
+        return isset($this->attributes[$var]);
     }
 
-    protected function mockUser()
+    public function offsetUnset($var)
     {
-        return m::mock('Permit\Registration\ActivatableInterface');
+        unset($this->attributes[$var]);
     }
-
 }

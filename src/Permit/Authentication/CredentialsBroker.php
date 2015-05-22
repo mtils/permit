@@ -350,6 +350,10 @@ class CredentialsBroker implements CredentialsBrokerInterface
                 continue;
             }
 
+            if (strpos($key,'_') === 0) {
+                continue;
+            }
+
             $filtered[$key] = $value;
         }
 

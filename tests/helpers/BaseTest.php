@@ -2,7 +2,7 @@
 
 use Mockery as m;
 
-use Permit\User\GenericUser;
+use Permit\Registration\GenericUser;
 use Permit\Support\Laravel\User\EloquentUser;
 use Permit\Hashing\NativeHasher;
 use Permit\Random\StrShuffleGenerator;
@@ -52,6 +52,21 @@ abstract class BaseTest extends PHPUnit_Framework_TestCase
     protected function mockRandomGenerator()
     {
         return m::mock('Permit\Random\GeneratorInterface');
+    }
+
+    protected function mockUserProvider()
+    {
+        return m::mock('Permit\Authentication\UserProviderInterface');
+    }
+
+    protected function mockTokens()
+    {
+        return m::mock('Permit\Token\RepositoryInterface');
+    }
+
+    protected function mockUsers()
+    {
+        return m::mock('Permit\Registration\UserRepositoryInterface');
     }
 
     public function tearDown()
