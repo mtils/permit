@@ -87,6 +87,16 @@ class CredentialsBroker implements CredentialsBrokerInterface
     protected $credentialsSetter;
 
     /**
+     * @var callable
+     **/
+    protected $expiryCalculator;
+
+    /**
+     * @var \DateTime
+     **/
+    protected $now;
+
+    /**
      * @param \Permit\Authentication\UserProviderInterface $userProvider
      * @param \Permit\Token\RepositoryInterface $tokenRepository
      * @param \Permit\Registration\UserRepositoryInterface $userRepository
@@ -151,7 +161,7 @@ class CredentialsBroker implements CredentialsBrokerInterface
             TokenRepository::PASSWORD_RESET
         );
 
-        $user = $this->findUserByIdOrFail($credentials);
+        $user = $this->findUserByIdOrFail($authId);
 
         $this->update($user, $credentials);
 
@@ -214,6 +224,38 @@ class CredentialsBroker implements CredentialsBrokerInterface
     public function setExpiryMinutes($minutes)
     {
         $this->expiryMinutes = $minutes;
+        return $this;
+    }
+
+    /**
+     * Calculate the expiry date
+     *
+     * @return \DateTime
+     **/
+    public function getExpiresAt()
+    {
+
+        if ($calc = $this->expiryCalculator) {
+            return $calc($this->now(), $this->getExpiryMinutes());
+        }
+
+        if (!$expiryMinutes = $this->getExpiryMinutes()) {
+            return null;
+        }
+
+        return $this->now()->modify("+$expiryMinutes minutes");
+
+    }
+
+    /**
+     * Set a custom expiry calculator
+     *
+     * @param callable
+     * @return self
+     **/
+    public function calculateExpiryWith(callable $expiryCalc)
+    {
+        $this->expiryCalculator = $expiryCalc;
         return $this;
     }
 
@@ -315,29 +357,29 @@ class CredentialsBroker implements CredentialsBrokerInterface
     }
 
     /**
-     * Calculate the expiry date
-     *
-     * @return \DateTime
-     **/
-    protected function getExpiresAt()
-    {
-
-        if (!$expiryMinutes = $this->getExpiryMinutes()) {
-            return null;
-        }
-
-        return $this->now()->modify("+$expiryMinutes minutes");
-
-    }
-
-    /**
      * Return the current DateTime
      *
      * @return \DateTime
      **/
     protected function now()
     {
+        if ($this->now) {
+            return clone $this->now;
+        }
+
         return new DateTime;
+    }
+
+    /**
+     * Modify the current datetime for testing purposes
+     *
+     * @param \DateTime $now
+     * @return self
+     **/
+    public function setNow(DateTime $now)
+    {
+        $this->now = $now;
+        return $this;
     }
 
 }
