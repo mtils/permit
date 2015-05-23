@@ -2,6 +2,7 @@
 
 
 use InvalidArgumentException;
+use BadMethodCallException;
 
 use Signal\NamedEvent\BusHolderTrait;
 
@@ -48,28 +49,32 @@ class Registrar implements RegistrarInterface{
     }
 
     /**
-     * Registers a user. If activation is forced the user will instantly be
-     * activated after creation
+     * {@inheritdoc}
      *
      * @param  array  $userData
-     * @param  bool   $activate (default:false)
+     * @param  bool|callable $activation (default:false)
      * @return \Permit\Registration\ActivatableInterface
      */
-    public function register(array $userData, $activate=false){
+    public function register(array $userData, $activation=false){
+
+        if (!is_bool($activation) && !is_callable($activation)) {
+            throw new BadMethodCallException("Activation has to be either bool or callable");
+        }
 
         $user = $this->userRepo->create($userData, false);
 
-        $this->fireIfNamed($this->registeredEventName, [$user, $activate]);
+        $this->fireIfNamed($this->registeredEventName, [$user, $activation]);
 
-        if(!$activate){
-
-            $token = $this->tokenRepo->create($user, TokenRepository::ACTIVATION);
-
-            $this->fireIfNamed($this->activationReservedEventName, [$user, $token]);
-
+        if ($activation === true) {
+            return $this->activate($user);
         }
-        else{
-            $this->activate($user);
+
+        $token = $this->tokenRepo->create($user, TokenRepository::ACTIVATION);
+
+        $this->fireIfNamed($this->activationReservedEventName, [$user, $token]);
+
+        if (is_callable($activation)) {
+            call_user_func($activation, $user, $token);
         }
 
         return $user;

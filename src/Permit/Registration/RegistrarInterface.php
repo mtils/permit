@@ -17,14 +17,20 @@ class ActivationFailedException extends RuntimeException{}
 interface RegistrarInterface{
 
     /**
-     * Registers a user. If activation is forced the user will instantly be
-     * activated after creation
+     * Registers a user. If you pass true as the second argument the user will
+     * instantly be activated. If you pass a closure this closure will be called
+     * with the activation token and the user to send a mail or so.
+     *
+     * @example Registrar::register($credentials, true) => Register and activate
+     * @example Registrar::register($credentials, false) => Register unactivated (default)
+     * @example Registrar::register($credentials, function($user, $token){})
+     *          Register an unactivated user, create a token and call closure
      *
      * @param  array  $userData
-     * @param  bool   $activate (default:false)
+     * @param  bool|callable $activation (default:false)
      * @return \Permit\Registration\ActivatableInterface
      */
-    public function register(array $userData, $activate=false);
+    public function register(array $userData, $activation=false);
 
     /**
      * Try to activate an user by activationParams like a code or many
