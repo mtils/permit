@@ -11,6 +11,7 @@ use Permit\Random\GeneratorInterface as RandomGenerator;
 use Permit\Token\TokenExpiredException;
 use Permit\Token\TokenInvalidException;
 use Permit\Token\TokenNotFoundException;
+use Permit\Token\TokenCollisionException;
 
 class EloquentRepository implements Repository
 {
@@ -83,9 +84,7 @@ class EloquentRepository implements Repository
             throw new TokenNotFoundException("Token $token not found");
         }
 
-        $now = $this->getNow();
-
-        if ($tokenModel->expiresAt && $tokenModel->expiresAt <= $now) {
+        if ($this->isExpired($tokenModel)) {
             throw new TokenExpiredException(
                 "Token $token expired",
                 $tokenModel->expiresAt
@@ -106,6 +105,8 @@ class EloquentRepository implements Repository
      **/
     public function create(User $user, $type, DateTime $expiresAt=null)
     {
+
+        $this->deleteExistingToken($user, $type);
 
         $token = $this->generateToken($type);
 
@@ -218,7 +219,8 @@ class EloquentRepository implements Repository
         $now = $this->getNow();
 
         $query = $this->tokenModel->newQuery()
-                                  ->where('expires_at','<=', $now);
+                                  ->where('expires_at','<=', $now)
+                                  ->whereNotNull('expires_at');
 
         if ($type) {
             $query->where('token_type', $type);
@@ -265,6 +267,30 @@ class EloquentRepository implements Repository
                                   ->where('token_type', $type);
 
         return $query->first();
+    }
+
+    protected function isExpired(Model $tokenModel)
+    {
+        $now = $this->getNow();
+        return ($tokenModel->expires_at && $tokenModel->expires_at < $now);
+    }
+
+    protected function deleteExistingToken(User $user, $type)
+    {
+
+        if (!$oldTokenModel = $this->getModelByUser($user, $type)) {
+            return;
+        }
+
+        if ($this->isExpired($oldTokenModel)) {
+            $oldTokenModel->delete();
+            return;
+        }
+
+        throw new TokenCollisionException(
+            $oldTokenModel->expires_at,
+            $oldTokenModel->token
+        );
     }
 
 }
