@@ -63,6 +63,8 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
         $this->registerGroupRepository();
 
+        $this->registerGroupManager();
+
         $this->registerUserRepository();
 
         $this->app->singleton('auth.driver', function($app)
@@ -466,6 +468,14 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
             $class = 'Permit\Support\Laravel\Groups\EloquentRepository';
             return $app->make($class, [$app->make($groupModel)]);
+        });
+    }
+
+    protected function registerGroupManager()
+    {
+        $interface = 'Permit\Groups\ManagerInterface';
+        $this->app->singleton($interface, function($app) {
+            return $app->make('Permit\Groups\Manager');
         });
     }
 
