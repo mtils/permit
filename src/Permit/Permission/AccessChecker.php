@@ -100,7 +100,7 @@ class AccessChecker implements CheckerInterface
         }
 
         if(!$holder instanceof NestedHolderInterface){
-            return false;
+            return null;
         }
 
         $subHoldersGranted = false;
@@ -120,7 +120,7 @@ class AccessChecker implements CheckerInterface
 
         }
 
-        return $subHoldersGranted;
+        return $subHoldersGranted ? true : null;
 
     }
 

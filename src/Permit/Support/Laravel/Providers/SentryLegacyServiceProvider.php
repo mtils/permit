@@ -8,6 +8,7 @@ use Illuminate\Auth\AuthManager;
 
 use Permit\Registration\RegistrarInterface;
 use Permit\Permission\AccessChecker;
+use Permit\Access\CheckerChain;
 use Permit\CurrentUser\DualContainer;
 use Permit\CurrentUser\FallbackContainer;
 use Permit\CurrentUser\LoginValidator;
@@ -49,7 +50,10 @@ class SentryLegacyServiceProvider extends ServiceProvider{
      *
      * @return void
      */
-    public function register(){
+    public function register()
+    {
+
+        $this->registerPermissionMerger();
 
         $this->registerPermissionChecker();
 
@@ -92,12 +96,55 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     }
 
-    protected function registerPermissionChecker(){
+    protected function registerPermissionMerger()
+    {
 
-        $this->app->singleton('Permit\Access\CheckerInterface', function($app){
-            return new AccessChecker();
+        $this->app->singleton('Permit\Permission\MergerInterface', function($app){
+
+            $merger = $app->make('Permit\Permission\NoWildcardMerger');
+            return $app->make(
+                'Permit\Permission\CachedMerger',
+                [$merger]
+            );
+
+        });
+    }
+
+    protected function registerPermissionChecker()
+    {
+
+        $this->app->singleton('Permit\Access\CheckerInterface', function($app) {
+
+            $chain = new CheckerChain();
+
+            $chain->provideCheckers(function($chain) {
+                $this->addAccessCheckers($chain);
+            });
+
+            return $chain;
+
         });
 
+    }
+
+    protected function addAccessCheckers(CheckerChain $chain)
+    {
+        $this->addCodePermissionChecker($chain);
+        $this->addUserToUserPermissionChecker($chain);
+    }
+
+    protected function addCodePermissionChecker(CheckerChain $checkerChain)
+    {
+        $checkerChain->addChecker(
+            $this->app->make('Permit\Permission\MergedChecker')
+        );
+    }
+
+    protected function addUserToUserPermissionChecker(CheckerChain $checkerChain)
+    {
+        $checkerChain->addChecker(
+            $this->app->make('Permit\Permission\CanAccessHolderChecker')
+        );
     }
 
     protected function registerLoginValidator(){

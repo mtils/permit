@@ -3,6 +3,7 @@
 use Mockery as m;
 
 use Permit\Registration\GenericUser;
+use Permit\Groups\GenericGroup;
 use Permit\Support\Laravel\User\EloquentUser;
 use Permit\Hashing\NativeHasher;
 use Permit\Random\StrShuffleGenerator;
@@ -15,6 +16,13 @@ abstract class BaseTest extends PHPUnit_Framework_TestCase
         $user = new GenericUser;
         $user->id = $id;
         return $user;
+    }
+
+    public function newGroup($id=1)
+    {
+        $group = new GenericGroup;
+        $group->id = $id;
+        return $group;
     }
 
     protected function mockUser()
