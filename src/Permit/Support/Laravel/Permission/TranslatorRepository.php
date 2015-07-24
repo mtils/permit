@@ -2,11 +2,14 @@
 
 use Symfony\Component\Translation\TranslatorInterface;
 use Permit\Permission\RepositoryInterface;
+use Permit\Permission\CategoryInterface;
+use Permit\Permission\Holder\HolderInterface;
 use OutOfBoundsException;
 use Permit\Permission\Permission;
 
 
-class TranslatorRepository{
+class TranslatorRepository implements RepositoryInterface
+{
 
     protected $translator;
 
