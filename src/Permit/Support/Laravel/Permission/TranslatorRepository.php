@@ -135,6 +135,17 @@ class TranslatorRepository implements RepositoryInterface
     
     }
 
+    public function getTranslationRoot()
+    {
+        return $this->translationRoot;
+    }
+
+    public function setTranslationRoot($root)
+    {
+        $this->translationRoot = $root;
+        return $this;
+    }
+
     protected function getTranslationKey($code, $append='title'){
 
         $key = $this->translationRoot.'.'.str_replace('.','-',$code);
