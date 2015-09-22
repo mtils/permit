@@ -5,9 +5,8 @@ use Permit\CurrentUser\ContainerInterface as Auth;
 use Permit\Access\CheckerInterface as AccessChecker;
 use RuntimeException;
 
-class HasAccess {
-
-    public $redirectPath = 'auth/login';
+class HasAccess extends PerformsGuestRedirect
+{
 
     /**
      * The current user container.
@@ -50,13 +49,10 @@ class HasAccess {
 
         if (!$this->checker->hasAccess($user, $permissions)) {
 
-            if ($request->ajax())
-            {
+            if ($request->ajax()) {
                 return response('Unauthorized.', 401);
-            }
-            else
-            {
-                return redirect()->guest($this->redirectPath);
+            } else {
+                return $this->guestRedirect($user, $permissions);
             }
 
         }

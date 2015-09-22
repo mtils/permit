@@ -3,9 +3,8 @@
 use Closure;
 use Permit\CurrentUser\ContainerInterface as Auth;
 
-class Authenticate {
-
-    public $redirectPath = 'auth/login';
+class Authenticate extends PerformsGuestRedirect
+{
 
     /**
      * The user container
@@ -34,15 +33,11 @@ class Authenticate {
      */
     public function handle($request, Closure $next)
     {
-        if ($this->auth->user()->isGuest())
-        {
-            if ($request->ajax())
-            {
+        if ($this->auth->user()->isGuest()) {
+            if ($request->ajax()) {
                 return response('Unauthorized.', 401);
-            }
-            else
-            {
-                return redirect()->guest($this->redirectPath);
+            } else {
+                return $this->guestRedirect($this->auth->user(), []);
             }
         }
 
