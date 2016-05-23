@@ -49,6 +49,13 @@ class CheckerChain implements CheckerInterface
         return $this;
     }
 
+    public function prependChecker(CheckerInterface $checker)
+    {
+        $this->checkers();
+        array_unshift($this->checkers, $checker);
+        return $this;
+    }
+
     public function removeChecker(CheckerInterface $checker)
     {
 
