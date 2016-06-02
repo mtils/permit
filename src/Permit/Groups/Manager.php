@@ -26,7 +26,7 @@ class Manager implements ManagerInterface{
 
         foreach($this->groupRepo->all() as $group){
             if($this->checker->hasAccess($holder, $group)){
-                $accessableGroups[] = $group;
+               $accessableGroups[] = $group;
             }
         }
 
