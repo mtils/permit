@@ -6,10 +6,11 @@ use Permit\Support\Laravel\Groups\EloquentHolderTrait;
 use Permit\Groups\HolderInterface;
 use Permit\Permission\Holder\NestedHolderInterface;
 use Permit\Groups\GenericGroup;
+use PHPUnit\Framework\TestCase;
 
 require_once __DIR__.'/../../../../helpers/EloquentModel.php';
 
-class EloquentHolderTraitTest extends PHPUnit_Framework_TestCase{
+class EloquentHolderTraitTest extends TestCase{
 
     public function testImplementsInterface()
     {

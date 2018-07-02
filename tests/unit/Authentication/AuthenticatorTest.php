@@ -6,8 +6,9 @@ use Permit\Authentication\Authenticator;
 use Permit\User\GenericUser;
 use Permit\Authentication\Exception\CredentialsNotFoundException;
 use Permit\Authentication\Exception\CredentialsInvalidException;
+use PHPUnit\Framework\TestCase;
 
-class AuthenticatorTest extends PHPUnit_Framework_TestCase{
+class AuthenticatorTest extends TestCase{
 
     public function testImplementsInterface()
     {

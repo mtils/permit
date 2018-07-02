@@ -4,8 +4,9 @@ use Mockery as m;
 
 use Permit\Support\Laravel\CurrentUser\GuardContainer;
 use Permit\User\GenericUser;
+use PHPUnit\Framework\TestCase;
 
-class GuardContainerTest extends PHPUnit_Framework_TestCase
+class GuardContainerTest extends TestCase
 {
 
     public function testImplementsInterfaces()

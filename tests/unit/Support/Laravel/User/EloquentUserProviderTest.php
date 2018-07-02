@@ -8,8 +8,9 @@ use Permit\Support\Laravel\User\EloquentUser;
 use Permit\Support\Laravel\User\EloquentUserProvider;
 use Permit\Hashing\HasherInterface as Hasher;
 use Permit\Hashing\NativeHasher;
+use PHPUnit\Framework\TestCase;
 
-class EloquentUserProviderTest extends PHPUnit_Framework_TestCase
+class EloquentUserProviderTest extends TestCase
 {
 
     public function testImplementsInterfaces()

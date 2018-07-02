@@ -3,8 +3,9 @@
 use Mockery as m;
 
 use Permit\Random\OpenSSLGenerator;
+use PHPUnit\Framework\TestCase;
 
-abstract class BaseGeneratorTest extends PHPUnit_Framework_TestCase{
+abstract class BaseGeneratorTest extends TestCase{
 
     public function testImplementsInterface()
     {

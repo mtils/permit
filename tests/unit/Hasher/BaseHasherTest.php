@@ -1,6 +1,8 @@
 <?php 
 
-abstract class BaseHasherTest extends PHPUnit_Framework_TestCase{
+use PHPUnit\Framework\TestCase;
+
+abstract class BaseHasherTest extends TestCase{
 
     public function testImplementsInterface()
     {

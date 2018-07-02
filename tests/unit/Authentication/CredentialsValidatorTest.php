@@ -5,8 +5,9 @@ use Mockery as m;
 use Permit\Authentication\CredentialsValidator;
 use Permit\Hashing\NativeHasher;
 use Permit\User\GenericUser;
+use PHPUnit\Framework\TestCase;
 
-class CredentialsValidatorTest extends PHPUnit_Framework_TestCase
+class CredentialsValidatorTest extends TestCase
 {
 
     public function testImplementsInterface()

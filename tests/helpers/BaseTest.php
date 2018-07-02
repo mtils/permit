@@ -7,8 +7,9 @@ use Permit\Groups\GenericGroup;
 use Permit\Support\Laravel\User\EloquentUser;
 use Permit\Hashing\NativeHasher;
 use Permit\Random\StrShuffleGenerator;
+use PHPUnit\Framework\TestCase;
 
-abstract class BaseTest extends PHPUnit_Framework_TestCase
+abstract class BaseTest extends TestCase
 {
 
     public function newUser($id=1)

@@ -2,11 +2,12 @@
 
 use Permit\Permission\Holder\HolderInterface;
 use Permit\Support\Laravel\Permission\Holder\EloquentJsonPermissionsTrait;
+use PHPUnit\Framework\TestCase;
 
 require_once __DIR__.'/../../../../../helpers/EloquentModel.php';
 
 
-class EloquentJsonPermissionsTraitTest extends PHPUnit_Framework_TestCase
+class EloquentJsonPermissionsTraitTest extends TestCase
 {
 
     public function testImplementsInterface()

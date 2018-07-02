@@ -3,8 +3,9 @@
 use Mockery as m;
 
 use Permit\Random\GeneratorSelector;
+use PHPUnit\Framework\TestCase;
 
-class GeneratorSelectorTest extends PHPUnit_Framework_TestCase{
+class GeneratorSelectorTest extends TestCase{
 
     public function testImplementsInterface()
     {

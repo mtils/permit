@@ -4,8 +4,9 @@ use Mockery as m;
 
 use Permit\Support\Laravel\User\EloquentRepository;
 use Permit\Support\Laravel\User\EloquentUser;
+use PHPUnit\Framework\TestCase;
 
-class EloquentUserRepositoryTest extends PHPUnit_Framework_TestCase
+class EloquentUserRepositoryTest extends TestCase
 {
 
     public function testImplementsInterface()

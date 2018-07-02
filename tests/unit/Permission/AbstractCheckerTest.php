@@ -7,8 +7,9 @@ use Permit\Permission\Holder\HolderInterface;
 use Permit\Permission\PermissionableInterface;
 use Permit\Permission\GenericPermissionableTrait;
 use Permit\Groups\GenericGroup;
+use PHPUnit\Framework\TestCase;
 
-abstract class AbstractCheckerTest extends PHPUnit_Framework_TestCase
+abstract class AbstractCheckerTest extends TestCase
 {
 
     public function testImplementsInterface()

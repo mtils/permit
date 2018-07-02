@@ -51,9 +51,10 @@ class OpenSSLEncrypter implements Encrypter
      * Encrypt the given value.
      *
      * @param  string  $value
+     * @param  bool    $serialize (default:true)
      * @return string
      */
-    public function encrypt($value)
+    public function encrypt($value, $serialize = true)
     {
         $iv = $this->getIv();
         $method = $this->method();
@@ -70,9 +71,10 @@ class OpenSSLEncrypter implements Encrypter
      * Decrypt the given value.
      *
      * @param  string  $payload
+     * @param  bool    $unserialize (default:true)
      * @return string
      */
-    public function decrypt($payload)
+    public function decrypt($payload, $unserialize = true)
     {
         $iv = $this->getIv();
         $method = $this->method();

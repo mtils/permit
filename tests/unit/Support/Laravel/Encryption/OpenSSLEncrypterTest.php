@@ -2,8 +2,9 @@
 
 use Mockery as m;
 use Permit\Support\Laravel\Encryption\OpenSSLEncrypter;
+use PHPUnit\Framework\TestCase;
 
-class OpenSSLEncrypterTest extends PHPUnit_Framework_TestCase
+class OpenSSLEncrypterTest extends TestCase
 {
 
     public function testImplementsInterface()
