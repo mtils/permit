@@ -3,6 +3,7 @@
 
 use Illuminate\Auth\Guard;
 
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Permit\CurrentUser\ContainerInterface;
 use Permit\CurrentUser\CanRememberUser;
 use Permit\User\UserInterface;
@@ -11,11 +12,11 @@ class GuardContainer implements ContainerInterface, CanRememberUser
 {
 
     /**
-     * @var \Illuminate\Auth\Guard
+     * @var StatefulGuard
      **/
     protected $guard;
 
-    public function __construct(Guard $guard)
+    public function __construct(StatefulGuard $guard)
     {
         $this->guard = $guard;
     }

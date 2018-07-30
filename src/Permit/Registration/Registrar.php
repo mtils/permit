@@ -4,31 +4,18 @@
 use InvalidArgumentException;
 use BadMethodCallException;
 
-use Signal\NamedEvent\BusHolderTrait;
-
 use Permit\User\UserInterface;
 use Permit\Token\RepositoryInterface as TokenRepository;
 use Permit\Access\AssignerInterface;
 use Permit\Registration\ActivatableInterface as ActivatableUser;
-
-
+use Ems\Core\Patterns\HookableTrait;
 
 /**
  * @brief The registrar registers, activates and deactivates users
  **/
 class Registrar implements RegistrarInterface{
 
-    use BusHolderTrait;
-
-    public $registeredEventName  = 'auth.registered';
-
-    public $activatingEventName   = 'auth.activating';
-
-    public $activatedEventName   = 'auth.activated';
-
-    public $activationReservedEventName = 'auth.activation-reserved';
-
-    public $assignedRightsEventName   = 'auth.assigned-rights';
+    use HookableTrait;
 
     protected $userRepo;
 
@@ -63,7 +50,8 @@ class Registrar implements RegistrarInterface{
 
         $user = $this->userRepo->create($userData, false);
 
-        $this->fireIfNamed($this->registeredEventName, [$user, $activation]);
+        //$this->fireIfNamed($this->registeredEventName, [$user, $activation]);
+        $this->callBeforeListeners('register', [$user, $activation]);
 
         if ($activation === true) {
             return $this->activate($user);
@@ -71,7 +59,8 @@ class Registrar implements RegistrarInterface{
 
         $token = $this->tokenRepo->create($user, TokenRepository::ACTIVATION);
 
-        $this->fireIfNamed($this->activationReservedEventName, [$user, $token]);
+        //$this->fireIfNamed($this->activationReservedEventName, [$user, $token]);
+        $this->callAfterListeners('register', [$user, $token]);
 
         if (is_callable($activation)) {
             call_user_func($activation, $user, $token);
@@ -118,7 +107,8 @@ class Registrar implements RegistrarInterface{
 
         $this->checkForActivation($user);
 
-        $this->fireIfNamed($this->activatingEventName, [$user]);
+        //$this->fireIfNamed($this->activatingEventName, [$user]);
+        $this->callBeforeListeners('activate', [$user]);
 
         $user->markAsActivated();
 
@@ -128,11 +118,13 @@ class Registrar implements RegistrarInterface{
             throw new ActivationFailedException('Activation has failed');
         }
 
-        $this->fireIfNamed($this->activatedEventName, [$user]);
+        //$this->fireIfNamed($this->activatedEventName, [$user]);
+        $this->callAfterListeners('activate', [$user]);
 
         $this->accessAssigner->assignAccessRights($user);
 
-        $this->fireIfNamed($this->assignedRightsEventName, [$user]);
+        //$this->fireIfNamed($this->assignedRightsEventName, [$user]);
+        $this->callAfterListeners('assignAccessRights', [$user]);
 
 
         return $user;

@@ -8,26 +8,12 @@ use Permit\Authentication\Exception\CredentialsInvalidException;
 use Permit\CurrentUser\ContainerInterface;
 use Permit\CurrentUser\CanRememberUser;
 use Permit\User\UserInterface;
-use Signal\NamedEvent\BusHolderTrait;
+use Ems\Core\Patterns\HookableTrait;
 
 class Authenticator implements AuthenticatorInterface
 {
 
-    use BusHolderTrait;
-
-    public $preAttemptEvent = 'permit:login.attempting';
-
-    public $credentialsNotFoundEvent = 'permit:login.credentials-not-found';
-
-    public $credentialsInvalidEvent = 'permit:login.credentials-invalid';
-
-    public $postAttemptEvent = 'permit:login.attempted';
-
-    public $loggedInEvent = 'permit:login.logged-in';
-
-    public $preLogoutEvent = 'permit:logout.attempting';
-
-    public $postLogoutEvent = 'permit:logout.logged-out';
+    use HookableTrait;
 
     /**
      * @var \Permit\Authentication\UserProviderInterface
@@ -68,14 +54,11 @@ class Authenticator implements AuthenticatorInterface
             throw new InvalidArgumentException('Container does not support remembering');
         }
 
-        $this->fireIfNamed($this->preAttemptEvent, [$credentials, $remember]);
+        $this->callBeforeListeners('authenticate', [$credentials, $remember]);
 
         if (!$user = $this->userProvider->findByCredentials($credentials)) {
 
-            $this->fireIfNamed(
-                $this->credentialsNotFoundEvent,
-                [$credentials, $remember]
-            );
+            $this->callAfterListeners('credentialsNotFound', [$credentials, $remember]);
 
             throw new CredentialsNotFoundException('User not found');
 
@@ -83,18 +66,12 @@ class Authenticator implements AuthenticatorInterface
 
         if (!$this->credentialsValidator->validateCredentials($user, $credentials)) {
 
-            $this->fireIfNamed(
-                $this->credentialsInvalidEvent,
-                [$user, $credentials, $remember]
-            );
+            $this->callAfterListeners('credentialsInvalid', [$user, $credentials, $remember]);
 
             throw new CredentialsInvalidException('Credentials wrong');
         }
 
-        $this->fireIfNamed(
-            $this->postAttemptEvent,
-            [$user, $credentials, $remember]
-        );
+        $this->callAfterListeners('authenticate', [$user, $credentials, $remember]);
 
         $this->loginUser($user, $remember);
 
@@ -111,10 +88,11 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function loginUser(UserInterface $user, $remember=true)
     {
+        $this->callBeforeListeners('loginUser', [$user, $remember]);
 
         $this->putIntoContainer($user, $remember);
 
-        $this->fireIfNamed($this->loggedInEvent, [$user, $remember]);
+        $this->callAfterListeners('loginUser', [$user, $remember]);
 
         return $user;
 
@@ -147,11 +125,11 @@ class Authenticator implements AuthenticatorInterface
 
         $user = $this->userContainer->user();
 
-        $this->fireIfNamed($this->preLogoutEvent, $user);
+        $this->callBeforeListeners('logout', [$user]);
 
         $this->userContainer->clearUser();
 
-        $this->fireIfNamed($this->postLogoutEvent, $user);
+        $this->callAfterListeners('logout', [$user]);
 
         return $user;
 
@@ -174,7 +152,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenAttempting($callable)
     {
-        $this->listen($this->preAttemptEvent, $callable);
+        $this->onBefore('authenticate', $callable);
     }
 
     /**
@@ -193,7 +171,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenCredentialsNotFound($callable)
     {
-        $this->listen($this->credentialsNotFoundEvent, $callable);
+        $this->onAfter('credentialsNotFound', $callable);
     }
 
     /**
@@ -216,7 +194,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenCredentialsInvalid($callable)
     {
-        $this->listen($this->credentialsInvalidEvent, $callable);
+        $this->onAfter('credentialsInvalid', $callable);
     }
 
     /**
@@ -237,7 +215,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenAttempted($callable)
     {
-        $this->listen($this->postAttemptEvent, $callable);
+        $this->onAfter('authenticate', $callable);
     }
 
     /**
@@ -256,7 +234,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenLoggedIn($callable)
     {
-        $this->listen($this->loggedInEvent, $callable);
+        $this->onAfter('loginUser', $callable);
     }
 
     /**
@@ -275,7 +253,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenLoggingOut($callable)
     {
-        $this->listen($this->preLogoutEvent, $callable);
+        $this->onBefore('logout', $callable);
     }
 
     /**
@@ -295,7 +273,7 @@ class Authenticator implements AuthenticatorInterface
      **/
     public function whenLoggedOut($callable)
     {
-        $this->listen($this->postLogoutEvent, $callable);
+        $this->onAfter('logout', $callable);
     }
 
 }

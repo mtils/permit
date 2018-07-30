@@ -5,8 +5,6 @@ use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Auth\EloquentUserProvider as IlluminateProvider;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
-use Signal\NamedEvent\BusHolderTrait;
-
 use Permit\User\UserInterface;
 use Permit\Authentication\UserProviderInterface;
 use Permit\Registration\UserRepositoryInterface;
@@ -15,6 +13,7 @@ use Permit\Hashing\HasherInterface;
 use Permit\Support\Laravel\Hashing\PermitHasher;
 use Permit\Token\RepositoryInterface as TokenRepository;
 use Permit\Token\TokenException;
+use Ems\Core\Patterns\HookableTrait;
 
 /**
  * The EloquentUserProvider implements the UserProvider interface of laravel
@@ -25,17 +24,9 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
                                                                  UserRepositoryInterface
 {
 
-    use BusHolderTrait;
+    use HookableTrait;
 
     public $passwordColumn = 'password';
-
-    public $creatingUserEvent = 'auth.user.creating';
-
-    public $createdUserEvent = 'auth.user.created';
-
-    public $updatingUserEvent = 'auth.user.updating';
-
-    public $updatedUserEvent = 'auth.user.updating';
 
     /**
      * @var \Illuminate\Database\Eloquent\Model
@@ -117,11 +108,11 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
             $user->markAsActivated();
         }
 
-        $this->fireIfNamed($this->creatingUserEvent, [$user, $activate]);
+        $this->callBeforeListeners('create', [$user, $activate]);
 
         $user->save();
 
-        $this->fireIfNamed($this->createdUserEvent, [$user, $activate]);
+        $this->callAfterListeners('create', [$user, $activate]);
 
         return $user;
     }
@@ -138,11 +129,11 @@ class EloquentUserProvider extends IlluminateProvider implements UserProviderInt
             $user->{$this->passwordColumn} = $hashedPassword;
         }
 
-        $this->fireIfNamed($this->updatingUserEvent, $user);
+        $this->callBeforeListeners('save', [$user]);
 
         $result = $user->save();
 
-        $this->fireIfNamed($this->updatedUserEvent, $user);
+        $this->callAfterListeners('save', [$user]);
 
         return $result;
 

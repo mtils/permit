@@ -195,7 +195,7 @@ class AuthService implements CheckerInterface, DualContainerInterface{
         return $this;
     }
 
-    /**
+    /**protected
      * @brief Second helper method fpr fluid syntax
      *        if( Auth::can($user)->access($resource) )
      *
@@ -264,7 +264,7 @@ class AuthService implements CheckerInterface, DualContainerInterface{
         // Then look for overloaded methods in fallbacks
         foreach($this->fallbackObjects as $fallback){
 
-            if(method_exists($fallback, __call)){
+            if(method_exists($fallback, '__call')){
                 return $fallback->__call($method, $params);
             }
 

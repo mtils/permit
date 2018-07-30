@@ -1,6 +1,6 @@
 <?php namespace Permit\Support\Laravel\Permission;
 
-use Symfony\Component\Translation\TranslatorInterface;
+use Illuminate\Translation\Translator;
 use Permit\Permission\RepositoryInterface;
 use Permit\Permission\CategoryInterface;
 use Permit\Permission\Holder\HolderInterface;
@@ -19,7 +19,7 @@ class TranslatorRepository implements RepositoryInterface
 
     protected $translationRoot = 'permissions';
 
-    public function __construct(TranslatorInterface $translator){
+    public function __construct(Translator $translator){
         $this->translator = $translator;
     }
 

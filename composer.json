@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": ">=5.4.0",
-    "ems/signal": "0.2.*"
+    "ems/framework": "0.3.*"
   },
   "require-dev": {
     "mockery/mockery": "~0.9",

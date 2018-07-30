@@ -20,7 +20,6 @@ use Permit\Hashing\NativeHasher;
 use Permit\Access\FakeAssigner;
 use Permit\Registration\Registrar;
 use Permit\AuthService;
-use Signal\Support\Laravel\IlluminateBus;
 use Permit\Throttle\ChecksThrottleOnLogin;
 use Permit\Doorkeeper\ChecksBanOnLogin;
 
@@ -73,7 +72,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
         $this->app->singleton('auth.driver', function($app)
         {
-            return $app['auth']->driver();
+            return $app['auth']->guard();
         });
 
     }
@@ -102,9 +101,10 @@ class SentryLegacyServiceProvider extends ServiceProvider{
         $this->app->singleton('Permit\Permission\MergerInterface', function($app){
 
             $merger = $app->make('Permit\Permission\NoWildcardMerger');
+
             return $app->make(
                 'Permit\Permission\CachedMerger',
-                [$merger]
+                ['merger' => $merger]
             );
 
         });
@@ -129,7 +129,9 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     protected function addAccessCheckers(CheckerChain $chain)
     {
+
         $this->addCodePermissionChecker($chain);
+
         $this->addUserToUserPermissionChecker($chain);
     }
 
@@ -162,7 +164,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
             $userModel = $app->make($app['config']['auth.model']);
             $repoClass = 'Permit\Support\Laravel\Token\UserModelTokenRepository';
 
-            $repo = $app->make($repoClass, [$userModel]);
+            $repo = $app->make($repoClass, ['model' => $userModel]);
             $repo->rememberKey = 'persist_code';
 
             return $repo;
@@ -174,9 +176,9 @@ class SentryLegacyServiceProvider extends ServiceProvider{
     {
         if(!$this->authManager){
             $this->authManager = new AuthManager($this->app);
-            $this->authManager->extend('permit', function($app){
+            $this->authManager->provider('permit', function($app){
                 $userModel = $app->make($app['config']['auth.model']);
-                return $app->make($this->userProviderClass, [$userModel]);
+                return $app->make($this->userProviderClass, ['modelInstance' => $userModel]);
             });
 
         }
@@ -185,7 +187,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
     protected function getIlluminateGuard()
     {
-        return $this->getAuthManager()->driver();
+        return $this->getAuthManager()->guard();
     }
 
     protected function registerCurrentUserContainer(){
@@ -244,7 +246,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
         $this->app->singleton($interface, function($app){
             $class = 'Permit\Support\Laravel\Throttle\ThrottleModelRepository';
-            $repo = $app->make($class, [$app->make($this->throttleModelClass)]);
+            $repo = $app->make($class, ['throttleModel' => $app->make($this->throttleModelClass)]);
             $app->instance($class, $repo);
             return $repo;
         });
@@ -340,8 +342,6 @@ class SentryLegacyServiceProvider extends ServiceProvider{
             $this->app['Permit\CurrentUser\ContainerInterface']
         );
 
-        $authenticator->setEventBus(new IlluminateBus($this->app['events']));
-
         $loginLogger = $this->app->make(
             'Permit\Support\Laravel\Authentication\UserModelLastLoginWriter'
         );
@@ -349,28 +349,38 @@ class SentryLegacyServiceProvider extends ServiceProvider{
         $authenticator->whenLoggedIn($loginLogger);
 
         if ($this->useRegistrar) {
-            $authenticator->whenAttempted(
-            'Permit\Registration\ChecksActivationOnLogin@checkActivation'
-            );
+            $authenticator->whenAttempted(function () {
+                $object = $this->app->make('Permit\Registration\ChecksActivationOnLogin');
+                $args = func_get_args();
+                return $object->checkActivation(...$args);
+            });
         }
 
         if ($this->useThrottling) {
             $class = 'Permit\Throttle\ChecksThrottleOnLogin';
-            $authenticator->whenLoggedIn(
-                "$class@recordSucceedLogin"
-            );
-            $authenticator->whenCredentialsInvalid(
-                "$class@recordFailedAttempt"
-            );
-            $authenticator->whenAttempted(
-                "$class@check"
-            );
+            $authenticator->whenLoggedIn(function () use ($class) {
+                $object = $this->app->make($class);
+                $args = func_get_args();
+                return $object->recordSucceedLogin(...$args);
+            });
+            $authenticator->whenCredentialsInvalid(function () use ($class) {
+                $object = $this->app->make($class);
+                $args = func_get_args();
+                return $object->recordFailedAttempt(...$args);
+            });
+            $authenticator->whenAttempted(function () use ($class) {
+                $object = $this->app->make($class);
+                $args = func_get_args();
+                return $object->check(...$args);
+            });
         }
 
         if ($this->useDoorKeeper) {
-            $authenticator->whenAttempted(
-                'Permit\Doorkeeper\ChecksBanOnLogin@check'
-            );
+            $authenticator->whenAttempted(function () {
+                $object = $this->app->make('Permit\Doorkeeper\ChecksBanOnLogin');
+                $args = func_get_args();
+                return $object->check(...$args);
+            });
         }
 
         return $authenticator;
@@ -441,7 +451,14 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
             $registrar = $app->make('Permit\Registration\Registrar');
 
-            $registrar->setEventBus(new IlluminateBus($this->app['events']));
+            // Some legacy events. @depracted
+            $registrar->onBefore('register', function () {
+                $this->app->make('events')->fire('auth.registered', func_get_args());
+            });
+
+            $registrar->onAfter('register', function () {
+                $this->app->make('events')->fire('auth.activation-reserved', func_get_args());
+            });
 
             return $registrar;
 
@@ -481,7 +498,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
         $useRegistrar = $this->useRegistrar;
 
-        $this->app->bindShared('auth', function($app) use ($useRegistrar)
+        $this->app->singleton('auth', function($app) use ($useRegistrar)
         {
             // Once the authentication service has actually been requested by the developer
             // we will set a variable in the application indicating such. This helps us
@@ -514,7 +531,7 @@ class SentryLegacyServiceProvider extends ServiceProvider{
             $groupModel = $userProvider->createModel()->getGroupModelClass();
 
             $class = 'Permit\Support\Laravel\Groups\EloquentRepository';
-            return $app->make($class, [$app->make($groupModel)]);
+            return $app->make($class, ['groupModel' => $app->make($groupModel)]);
         });
     }
 

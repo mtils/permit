@@ -3,49 +3,18 @@
 use DateTime;
 use ArrayAccess;
 use RuntimeException;
-use Signal\NamedEvent\BusHolderTrait;
 use Permit\Registration\ActivatableInterface;
 use Permit\Authentication\UserProviderInterface as UserProvider;
 use Permit\Token\RepositoryInterface as TokenRepository;
 use Permit\Registration\UserRepositoryInterface as UserRepository;
 use Permit\User\UserNotFoundException;
 use Permit\Token\TokenMissingException;
+use Ems\Core\Patterns\HookableTrait;
 
 class CredentialsBroker implements CredentialsBrokerInterface
 {
 
-    use BusHolderTrait;
-
-    /**
-     * This event is fired if user of request was found before the token
-     * is created. ($credentials, $user)
-     *
-     * @var string
-     **/
-    public $reservingEvent = 'auth.reserving-passwordreset';
-
-    /**
-     * This event is fired when the token was created and saved ($user, $token)
-     *
-     * @var string
-     **/
-    public $reservedEvent = 'auth.reserved-passwordreset';
-
-    /**
-     * This event is fired when the user updates its credentials before save
-     * This happens on reset() and update(). ($credentials, $user)
-     *
-     * @var string
-     **/
-    public $resettingEvent = 'auth.resetting-password';
-
-    /**
-     * This event is fired when the password reset or update is completed.
-     * ($credentials, $password)
-     *
-     * @var string
-     **/
-    public $resettedEvent = 'auth.resetted-password';
+    use HookableTrait;
 
     /**
      * The password key in credentials array
@@ -123,6 +92,7 @@ class CredentialsBroker implements CredentialsBrokerInterface
         $user = $this->findUserOrFail($credentials);
 
         $this->fire($this->reservingEvent, [$credentials, $user]);
+        $this->callBeforeListeners('reserveReset', [$credentials, $user]);
 
         $token = $this->tokens->create(
             $user,
@@ -131,6 +101,7 @@ class CredentialsBroker implements CredentialsBrokerInterface
         );
 
         $this->fire($this->reservedEvent, [$user, $token]);
+        $this->callAfterListeners('reserveReset', [$user, $token]);
 
         if (is_callable($thenDo)) {
             call_user_func_array($thenDo, [$user, $token]);
@@ -182,12 +153,14 @@ class CredentialsBroker implements CredentialsBrokerInterface
     {
 
         $this->fire($this->resettingEvent, [$credentials, $user]);
+        $this->callBeforeListeners('update', [$credentials, $user]);
 
         $this->applyCredentials($user, $credentials);
 
         $result = $this->users->save($user);
 
         $this->fire($this->resettedEvent, [$credentials, $user]);
+        $this->callAfterListeners('update', [$credentials, $user]);
 
         return $result;
 
