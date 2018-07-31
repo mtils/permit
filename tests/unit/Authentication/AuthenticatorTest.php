@@ -135,14 +135,12 @@ class AuthenticatorTest extends TestCase{
         $userProvider = $this->mockUserProvider();
         $validator = $this->mockCredentialsValidator();
         $container = $this->mockRememberContainer();
-        $eventBus = $this->mockEventBus();
 
         $authenticator = $this->newAuthenticator(
             $userProvider,
             $validator,
             $container
         );
-        $authenticator->setEventBus($eventBus);
 
         $user = $this->newUser();
 
@@ -163,30 +161,6 @@ class AuthenticatorTest extends TestCase{
                   ->once()
                   ->andReturn($user);
 
-        $eventBus->shouldReceive('fire')
-                 ->with(
-                    $authenticator->preAttemptEvent,
-                    [$credentials, $remember],
-                    false
-                 )
-                 ->once();
-
-        $eventBus->shouldReceive('fire')
-                 ->with(
-                    $authenticator->postAttemptEvent,
-                    [$user, $credentials, $remember],
-                    false
-                 )
-                 ->once();
-
-        $eventBus->shouldReceive('fire')
-                 ->with(
-                    $authenticator->loggedInEvent,
-                    [$user, $remember],
-                    false
-                 )
-                 ->once();
-
         $authenticator->authenticate($credentials, $remember);
 
     }
@@ -194,10 +168,8 @@ class AuthenticatorTest extends TestCase{
     public function testAuthenticateFiresEventIfCredentialsNotFound()
     {
         $userProvider = $this->mockUserProvider();
-        $bus = $this->mockEventBus();
         $validator = $this->mockCredentialsValidator();
         $authenticator = $this->newAuthenticator($userProvider, $validator);
-        $authenticator->setEventBus($bus);
 
         $credentials = ['username'=>'foo', 'password'=>'passwort123'];
         $remember = false;
@@ -206,21 +178,6 @@ class AuthenticatorTest extends TestCase{
                      ->andReturn(false)
                      ->once();
 
-        $bus->shouldReceive('fire')
-            ->with(
-                $authenticator->preAttemptEvent,
-                [$credentials, $remember],
-                false
-            )
-            ->once();
-
-        $bus->shouldReceive('fire')
-            ->with(
-                $authenticator->credentialsNotFoundEvent,
-                [$credentials, $remember],
-                false
-            )
-            ->once();
 
         try{
             $authenticator->authenticate($credentials, $remember);
@@ -232,10 +189,9 @@ class AuthenticatorTest extends TestCase{
     public function testAuthenticateFiresEventIfCredentialsInvalid()
     {
         $userProvider = $this->mockUserProvider();
-        $bus = $this->mockEventBus();
         $validator = $this->mockCredentialsValidator();
         $authenticator = $this->newAuthenticator($userProvider, $validator);
-        $authenticator->setEventBus($bus);
+
         $user = $this->newUser();
 
         $credentials = ['username'=>'foo', 'password'=>'passwort123'];
@@ -249,22 +205,6 @@ class AuthenticatorTest extends TestCase{
                   ->with($user, $credentials)
                   ->once()
                   ->andReturn(false);
-
-        $bus->shouldReceive('fire')
-            ->with(
-                $authenticator->preAttemptEvent,
-                [$credentials, $remember],
-                false
-            )
-            ->once();
-
-        $bus->shouldReceive('fire')
-            ->with(
-                $authenticator->credentialsInvalidEvent,
-                [$user, $credentials, $remember],
-                false
-            )
-            ->once();
 
         try{
             $authenticator->authenticate($credentials, $remember);
@@ -294,9 +234,9 @@ class AuthenticatorTest extends TestCase{
     {
 
         $container = $this->mockUserContainer();
-        $eventBus = $this->mockEventBus();
+
         $authenticator = $this->newAuthenticator(null,null,$container);
-        $authenticator->setEventBus($eventBus);
+
         $user = $this->newUser();
 
         $container->shouldReceive('user')
@@ -306,127 +246,7 @@ class AuthenticatorTest extends TestCase{
         $container->shouldReceive('clearUser')
                   ->once();
 
-        $eventBus->shouldReceive('fire')
-                 ->with($authenticator->preLogoutEvent, $user, false)
-                 ->once();
-
-        $eventBus->shouldReceive('fire')
-                 ->with($authenticator->postLogoutEvent, $user, false)
-                 ->once();
-
         $this->assertSame($user, $authenticator->logout());
-    }
-
-    public function testWhenAttemptingPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->preAttemptEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenAttempting($callable));
-    }
-
-    public function testWhenCredentialsNoFoundPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->credentialsNotFoundEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenCredentialsNotFound($callable));
-    }
-
-    public function testWhenCredentialsInvalidPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->credentialsInvalidEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenCredentialsInvalid($callable));
-    }
-
-    public function testWhenAttemptedPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->postAttemptEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenAttempted($callable));
-    }
-
-    public function testWhenLoggedInPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->loggedInEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenLoggedIn($callable));
-    }
-
-    public function testWhenLoggingOutPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->preLogoutEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenLoggingOut($callable));
-    }
-
-    public function testWhenLoggedOutPassesListenerToEventBus()
-    {
-
-        $eventBus = $this->mockEventBus();
-        $authenticator = $this->newAuthenticator();
-        $authenticator->setEventBus($eventBus);
-        $callable = 'strpos';
-
-
-        $eventBus->shouldReceive('listen')
-                 ->with($authenticator->postLogoutEvent, $callable, 0)
-                 ->once();
-
-        $this->assertNull($authenticator->whenLoggedOut($callable));
     }
 
     public function newAuthenticator($userProvider=null,
@@ -464,11 +284,6 @@ class AuthenticatorTest extends TestCase{
             'Permit\CurrentUser\ContainerInterface',
             'Permit\CurrentUser\CanRememberUser'
         );
-    }
-
-    public function mockEventBus()
-    {
-        return m::mock('Signal\Contracts\NamedEvent\Bus');
     }
 
     public function newUser($id=1)

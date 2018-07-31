@@ -91,7 +91,6 @@ class CredentialsBroker implements CredentialsBrokerInterface
 
         $user = $this->findUserOrFail($credentials);
 
-        $this->fire($this->reservingEvent, [$credentials, $user]);
         $this->callBeforeListeners('reserveReset', [$credentials, $user]);
 
         $token = $this->tokens->create(
@@ -100,7 +99,6 @@ class CredentialsBroker implements CredentialsBrokerInterface
             $this->getExpiresAt()
         );
 
-        $this->fire($this->reservedEvent, [$user, $token]);
         $this->callAfterListeners('reserveReset', [$user, $token]);
 
         if (is_callable($thenDo)) {
@@ -152,14 +150,12 @@ class CredentialsBroker implements CredentialsBrokerInterface
     public function update(ActivatableInterface $user, array $credentials)
     {
 
-        $this->fire($this->resettingEvent, [$credentials, $user]);
         $this->callBeforeListeners('update', [$credentials, $user]);
 
         $this->applyCredentials($user, $credentials);
 
         $result = $this->users->save($user);
 
-        $this->fire($this->resettedEvent, [$credentials, $user]);
         $this->callAfterListeners('update', [$credentials, $user]);
 
         return $result;

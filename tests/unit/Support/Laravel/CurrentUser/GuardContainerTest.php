@@ -96,7 +96,7 @@ class GuardContainerTest extends TestCase
 
     public function mockGuard()
     {
-        return m::mock('Illuminate\Auth\Guard');
+        return m::mock(Illuminate\Contracts\Auth\StatefulGuard::class);
     }
 
     public function newUser($id=1)
