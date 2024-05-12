@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -247,7 +247,7 @@ class NoWildcardMergerTest extends BaseTest
 
 
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

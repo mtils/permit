@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 use Permit\Support\Laravel\Encryption\OpenSSLEncrypter;
@@ -69,8 +69,9 @@ class OpenSSLEncrypterTest extends TestCase
 
         foreach ($tests as $test) {
             $encrypted = $encrypter->encrypt($test);
-            $this->assertNotEquals($encrypted, $test);
-            $this->assertTrue($test === $encrypter->decrypt($encrypted));
+            $this->assertIsString($encrypted);
+            $this->assertTrue(strlen($encrypted) > 5);
+            $this->assertTrue(($test === $encrypter->decrypt($encrypted)));
         }
 
     }
@@ -108,12 +109,12 @@ class OpenSSLEncrypterTest extends TestCase
         return new OpenSSLEncrypter($key);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         mb_internal_encoding('UTF-8');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

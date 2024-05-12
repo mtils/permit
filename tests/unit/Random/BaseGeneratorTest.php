@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -43,14 +43,12 @@ abstract class BaseGeneratorTest extends TestCase{
     public function testIsSupportedReturnsBool()
     {
         $generator = $this->newGenerator();
-        $this->assertInternalType('bool', $generator->isSupported());
+        $this->assertIsBool($generator->isSupported());
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     **/
     public function testLengthLowerThanZeroThrowsException()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $generator = $this->newGenerator();
 
         $generator->generate(0, true);

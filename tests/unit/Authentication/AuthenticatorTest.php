@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -18,20 +18,18 @@ class AuthenticatorTest extends TestCase{
         );
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     **/
     public function testAuthenticateAndRememberThrowsExceptionIfContainerDoesntSupportIt()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $authenticator = $this->newAuthenticator();
         $authenticator->authenticate([], true);
     }
 
-    /**
-     * @expectedException \Permit\Authentication\Exception\CredentialsNotFoundException
-     **/
     public function testAuthenticateThrowsExceptionIfUserNotFound()
     {
+        $this->expectException(
+            \Permit\Authentication\Exception\CredentialsNotFoundException::class
+        );
         $userProvider = $this->mockUserProvider();
         $authenticator = $this->newAuthenticator($userProvider);
 
@@ -41,11 +39,11 @@ class AuthenticatorTest extends TestCase{
         $authenticator->authenticate([], false);
     }
 
-    /**
-     * @expectedException \Permit\Authentication\Exception\CredentialsInvalidException
-     **/
     public function testAuthenticateThrowsExceptionIfCredentialsNotValid()
     {
+        $this->expectException(
+            \Permit\Authentication\Exception\CredentialsInvalidException::class
+        );
         $userProvider = $this->mockUserProvider();
         $validator = $this->mockCredentialsValidator();
         $authenticator = $this->newAuthenticator($userProvider, $validator);
@@ -293,7 +291,7 @@ class AuthenticatorTest extends TestCase{
         return $user;
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

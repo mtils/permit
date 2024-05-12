@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -84,11 +84,9 @@ class UserModelTokenRepositoryTest extends BaseTest
         $this->assertEquals(255, $repo->getAuthIdByToken($token, Tokens::REMEMBER));
     }
 
-    /**
-     * @expectedException \Permit\Token\TokenInvalidException
-     **/
     public function testGetAuthIdThrowsExceptionIfTokenIsInvalid()
     {
+        $this->expectException(\Permit\Token\TokenInvalidException::class);
 
         $userModel = $this->mockEloquentUser();
         $repo = $this->newRepository($userModel);
@@ -105,11 +103,9 @@ class UserModelTokenRepositoryTest extends BaseTest
         $repo->getAuthIdByToken($token, Tokens::REMEMBER);
     }
 
-    /**
-     * @expectedException \Permit\Token\TokenNotFoundException
-     **/
     public function testGetAuthIdThrowsExceptionIfTokenNotFound()
     {
+        $this->expectException(\Permit\Token\TokenNotFoundException::class);
 
         $userModel = $this->mockEloquentUser();
         $repo = $this->newRepository($userModel);

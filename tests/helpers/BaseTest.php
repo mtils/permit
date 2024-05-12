@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -78,7 +78,7 @@ abstract class BaseTest extends TestCase
         return m::mock('Permit\Registration\UserRepositoryInterface');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

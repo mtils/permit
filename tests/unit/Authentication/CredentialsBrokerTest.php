@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 use Permit\Authentication\CredentialsBroker;
@@ -15,11 +15,9 @@ class CredentialsBrokerTest extends BaseTest{
         );
     }
 
-    /**
-     * @expectedException \Permit\User\UserNotFoundException
-     **/
     public function testReserveResetThrowsExceptionIfUserNotFound()
     {
+        $this->expectException(\Permit\User\UserNotFoundException::class);
         $userProvider = $this->mockUserProvider();
         $tokens = $this->mockTokens();
         $broker = $this->newBroker($userProvider, $tokens);
@@ -96,20 +94,16 @@ class CredentialsBrokerTest extends BaseTest{
 
     }
 
-    /**
-     * @expectedException \Permit\Token\TokenMissingException
-     **/
     public function testResetThrowsExceptionOfNoTokenPassed()
     {
+        $this->expectException(\Permit\Token\TokenMissingException::class);
         $broker = $this->newBroker();
         $broker->reset([]);
     }
 
-    /**
-     * @expectedException \Permit\User\UserNotFoundException
-     **/
     public function testResetThrowsExceptionIfUserNotFound()
     {
+        $this->expectException(\Permit\User\UserNotFoundException::class);
 
         $users = $this->mockUsers();
         $tokens = $this->mockTokens();
@@ -270,11 +264,9 @@ class CredentialsBrokerTest extends BaseTest{
 
     }
 
-    /**
-     * @expectedException \RuntimeException
-     **/
     public function testApplyCredentialsThrowsExceptionIfCantSetAttributes()
     {
+        $this->expectException(\RuntimeException::class);
 
         $users = $this->mockUsers();
         $tokens = $this->mockTokens();
@@ -343,22 +335,22 @@ class ArrayAccessableUser extends GenericUser implements ArrayAccess
 {
     public $attributes = [];
 
-    public function offsetGet($var)
+    #[ReturnTypeWillChange] public function offsetGet($var)
     {
         return $this->attributes[$var];
     }
 
-    public function offsetSet($var, $value)
+    #[ReturnTypeWillChange] public function offsetSet($var, $value)
     {
         $this->attributes[$var] = $value;
     }
 
-    public function offsetExists($var)
+    #[ReturnTypeWillChange] public function offsetExists($var)
     {
         return isset($this->attributes[$var]);
     }
 
-    public function offsetUnset($var)
+    #[ReturnTypeWillChange] public function offsetUnset($var)
     {
         unset($this->attributes[$var]);
     }

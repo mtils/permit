@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -189,7 +189,7 @@ class EloquentHolderTraitTest extends TestCase{
         return new UserGroupHolder;
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

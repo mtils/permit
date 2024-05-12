@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Permit\Permission\Holder\HolderInterface;
 use Permit\Support\Laravel\Permission\Holder\EloquentJsonPermissionsTrait;
@@ -87,11 +87,9 @@ class EloquentJsonPermissionsTraitTest extends TestCase
 
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     **/
     public function testGetPermissionsAttributeWithInvalidJsonThrowsException()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $user = $this->newUser();
         $permissions = ']invalidJSON[';
 
@@ -142,11 +140,9 @@ class EloquentJsonPermissionsTraitTest extends TestCase
 
     }
 
-    /**
-     * @expectedException UnexpectedValueException
-     **/
     public function testSetPermissionsAttributeWithInvalidAccessThrowsException()
     {
+        $this->expectException(UnexpectedValueException::class);
 
         $user = $this->newUser();
 

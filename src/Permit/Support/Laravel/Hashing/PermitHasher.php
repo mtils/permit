@@ -61,4 +61,10 @@ class PermitHasher implements IlluminateHasher
         return $this->permitHasher->needsRehash($hashedValue, $options);
     }
 
+    public function info($hashedValue)
+    {
+        return password_get_info($hashedValue);
+    }
+
+
 }

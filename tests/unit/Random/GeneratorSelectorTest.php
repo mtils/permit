@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -147,11 +147,9 @@ class GeneratorSelectorTest extends TestCase{
 
     }
 
-    /**
-     * @expectedException UnderflowException
-     **/
     public function testGetStrongestGeneratorThrowsExceptionIfNoneSupportedFound()
     {
+        $this->expectException(UnderflowException::class);
         $selector = $this->newGenerator();
         $generator = $this->mock();
 
@@ -163,11 +161,9 @@ class GeneratorSelectorTest extends TestCase{
 
     }
 
-    /**
-     * @expectedException UnderflowException
-     **/
     public function testGetStrongestGeneratorThrowsExceptionIfNoGeneratoryAdded()
     {
+        $this->expectException(UnderflowException::class);
         $selector = $this->newGenerator();
         $selector->getStrongestGenerator();
 
@@ -252,7 +248,7 @@ class GeneratorSelectorTest extends TestCase{
         return m::mock('Permit\Random\GeneratorInterface');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

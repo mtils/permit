@@ -182,4 +182,18 @@ class OpenSSLEncrypter implements Encrypter
         $this->iv = $iv;
     }
 
+    public function getKey()
+    {
+        return $this->key;
+    }
+
+    public function getAllKeys()
+    {
+        return [$this->key];
+    }
+
+    public function getPreviousKeys()
+    {
+        return $this->getAllKeys();
+    }
 }

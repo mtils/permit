@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -10,11 +10,9 @@ require_once __DIR__.'/BaseHasherTest.php';
 class NativeHasherTest extends BaseHasherTest{
 
 
-    /**
-     * @expectedException \RuntimeException
-     **/
     public function testHashThrowsExceptionIfSystemHasNoSupport()
     {
+        $this->expectException(\RuntimeException::class);
         $adapter = $this->mockSystemAdapter();
         $hasher = new NativeHasher($adapter);
 
@@ -26,11 +24,9 @@ class NativeHasherTest extends BaseHasherTest{
 
     }
 
-    /**
-     * @expectedException \RuntimeException
-     **/
     public function testCheckThrowsExceptionIfSystemHasNoSupport()
     {
+        $this->expectException(\RuntimeException::class);
         $adapter = $this->mockSystemAdapter();
         $hasher = new NativeHasher($adapter);
 
@@ -42,11 +38,9 @@ class NativeHasherTest extends BaseHasherTest{
 
     }
 
-    /**
-     * @expectedException \RuntimeException
-     **/
     public function testNeedsRehashThrowsExceptionIfSystemHasNoSupport()
     {
+        $this->expectException(\RuntimeException::class);
         $adapter = $this->mockSystemAdapter();
         $hasher = new NativeHasher($adapter);
 
@@ -58,11 +52,9 @@ class NativeHasherTest extends BaseHasherTest{
 
     }
 
-    /**
-     * @expectedException \RuntimeException
-     **/
     public function testHashThrowsExceptionIfHashingFailed()
     {
+        $this->expectException(\RuntimeException::class);
         $adapter = $this->mockSystemAdapter();
         $hasher = new NativeHasher($adapter);
 
@@ -88,7 +80,7 @@ class NativeHasherTest extends BaseHasherTest{
         return m::mock('Permit\Hashing\NativeHasherSystemAdapter');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

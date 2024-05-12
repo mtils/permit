@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -115,7 +115,7 @@ class GuardContainerTest extends TestCase
 
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

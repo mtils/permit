@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -74,11 +74,9 @@ class CredentialsValidatorTest extends TestCase
         $this->assertTrue($validator->validateCredentials($user, $credentials));
     }
 
-    /**
-     * @expectedException \OutOfBoundsException
-     **/
     public function testValidateCredentialsThrowsExceptionIfPasswordNotFound()
     {
+        $this->expectException(\OutOfBoundsException::class);
         $hasher = $this->mockHasher();
         $validator = $this->newValidator($hasher);
         $credentials = ['login'=>'christine','password'=>'123'];
@@ -111,7 +109,7 @@ class CredentialsValidatorTest extends TestCase
         return new GenericUser;
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Mockery as m;
 
@@ -196,7 +196,7 @@ class EloquentUserProviderTest extends TestCase
 
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }
