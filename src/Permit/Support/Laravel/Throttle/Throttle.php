@@ -31,4 +31,9 @@ class Throttle extends Model{
      */
     protected $guarded = [];
 
+    public function getDates()
+    {
+        return $this->dates;
+    }
+
 }
