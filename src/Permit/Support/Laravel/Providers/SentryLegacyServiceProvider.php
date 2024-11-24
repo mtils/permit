@@ -453,11 +453,11 @@ class SentryLegacyServiceProvider extends ServiceProvider{
 
             // Some legacy events. @depracted
             $registrar->onBefore('register', function () {
-                $this->app->make('events')->fire('auth.registered', func_get_args());
+                $this->app->make('events')->dispatch('auth.registered', func_get_args());
             });
 
             $registrar->onAfter('register', function () {
-                $this->app->make('events')->fire('auth.activation-reserved', func_get_args());
+                $this->app->make('events')->dispatch('auth.activation-reserved', func_get_args());
             });
 
             return $registrar;
